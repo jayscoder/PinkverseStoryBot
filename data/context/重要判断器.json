@@ -1,0 +1,26 @@
+[
+    {
+        "role": "user",
+        "content": "你好"
+    },
+    {
+        "role": "assistant",
+        "content": "0"
+    },
+    {
+        "role": "user",
+        "content": "哈哈"
+    },
+    {
+        "role": "assistant",
+        "content": "0"
+    },
+    {
+        "role": "user",
+        "content": "你是傻逼"
+    },
+    {
+        "role": "assistant",
+        "content": "请文明用语，谢谢。"
+    }
+]
