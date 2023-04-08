@@ -4,7 +4,6 @@ import discord
 import constantly
 from enum import Flag, auto
 
-
 openai.api_key = os.getenv("OPENAI_API_KEY")
 bot = discord.Client(
         intents=discord.Intents.all()
@@ -35,7 +34,6 @@ CHANNEL_NAME_GROUP = 'group'
 available_models = openai.Model.list()['data']  # 当前支持的模型类型
 available_model_ids = [model.id for model in available_models]
 
-
 GPT_4_TOKEN_PRICE = 45 * 6.88 / 1000000
 GPT_3_5_TOKEN_PRICE = 2 * 6.88 / 1000000
 
@@ -54,19 +52,17 @@ class Command(constantly.NamedConstant):
 
     @staticmethod
     def check_equal(content: str, command: str):
-        for c in [command, f'!{command}', f'！{command}']:
+        for c in [f'!{command}', f'！{command}']:
             if content == c:
                 return True
         return False
 
     @staticmethod
     def check_startswith(content: str, command: str):
-        for c in [command, f'!{command}', f'！{command}']:
+        for c in [f'!{command}', f'！{command}']:
             if content.startswith(c):
                 return True
         return False
-
-
 
 
 # 频道类型(标志类型)
