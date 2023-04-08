@@ -227,8 +227,13 @@ class Context:
             if not self.channel_mode & ChannelMode.NO_HISTORY:
                 for choice in response.choices:
                     self.history.append(choice.message)
-
-            response_content += '\n' + f'> tokens={self.history_tokens()}'
+            completion_tokens = response['usage']['completion_tokens']
+            prompt_tokens = response['usage']['prompt_tokens']
+            total_tokens = response['usage']['total_tokens']
+            current_model = response['model']
+            response_content += f'''
+> tokens: {completion_tokens} + {prompt_tokens} = {total_tokens}
+> model: {current_model}'''
 
             self.dump_history()
             await self.send_message(response_content)
