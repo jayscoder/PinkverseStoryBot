@@ -166,12 +166,16 @@ class Context:
             await self.send_message('\n'.join(member_list))
             return
 
-        # modelId = extract_model_id(self.content)
-        # if modelId:
-        #     modelInfo = openai.Model.retrieve(modelId)
-        #     print(modelInfo)
-        #     await message.channel.send(json.dumps(modelInfo, indent=4))
-        #     return
+        if Command.check_startswith(self.content, Command.IMAGE):
+            # 生成图片
+            self.content = Command.remove_startswith(self.content, Command.IMAGE)
+            response = await self.get_openai_image()
+            if isinstance(response, str):
+                await self.send_message(response)
+            else:
+                response_content = '\n'.join([f"![{item['url']}]({item['url']})" for item in response['data']])
+                await self.send_message(response_content)
+                return
 
         summary = Command.check_equal(self.content, Command.SUMMARY)
         if summary:
@@ -246,13 +250,33 @@ class Context:
     # openai聊天模型
     async def get_openai_chat_completion(self):
         try:
-            post_messages = [{
-                'role'   : 'system',
-                'content': self.system
-            }] + self.history
+            post_messages = self.history
+            if self.system != '':
+                post_messages = [{
+                    'role'   : 'system',
+                    'content': self.system
+                }] + post_messages
+
             print(post_messages)
             response = openai.ChatCompletion.create(model=self.gpt_model,
                                                     messages=post_messages)
+            print(response)
+            return response
+        except ConnectionError as ce:
+            return "无法连接到ChatGPT API。"
+        except TimeoutError as te:
+            return "ChatGPT API请求超时。"
+        except Exception as e:
+            print(e, self.system, self.history)
+            return f"ChatGPT API请求失败: {e}"
+
+    async def get_openai_image(self):
+        try:
+            response = openai.Image.create(
+                    prompt=f'{self.content}',
+                    n=1,
+                    size="1024x1024"
+            )
             print(response)
             return response
         except ConnectionError as ce:

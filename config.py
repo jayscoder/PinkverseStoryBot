@@ -22,12 +22,15 @@ HELP_CONTENT = '''!help: 获取当前的指令手册
 !clear: 清空上下文
 !token: 获取当前上下文token数
 !members: 获取当前频道所有成员的名称
+!image: 生成图片
 '''
+
 DEFAULT_GPT_MODEL = 'gpt-3.5-turbo'  # 默认是gpt-3.5
 
 # 默认GPT系统
 DEFAULT_GROUP_GPT_SYSTEM = "user文本第一行冒号前的内容是发送者名称"
-DEFAULT_GPT_SYSTEM = "You're a helpful assistant."
+# DEFAULT_GPT_SYSTEM = "You're a helpful assistant."
+DEFAULT_GPT_SYSTEM = ''
 
 CHANNEL_NAME_GROUP = 'group'
 
@@ -49,6 +52,7 @@ class Command(constantly.NamedConstant):
     CLEAR = 'clear'
     TOKEN = 'token'
     MEMBERS = 'members'
+    IMAGE = 'image' # 生成图片命令
 
     @staticmethod
     def check_equal(content: str, command: str):
@@ -64,6 +68,9 @@ class Command(constantly.NamedConstant):
                 return True
         return False
 
+    @staticmethod
+    def remove_startswith(content: str, command: str):
+        return content[len(command) + 1:]
 
 # 频道类型(标志类型)
 class ChannelMode(Flag):
