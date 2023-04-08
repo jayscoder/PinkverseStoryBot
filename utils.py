@@ -11,15 +11,19 @@ from enum import Flag, auto
 from config import *
 
 
+def makedirs(directory: str):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+
 # 上下文
 class Context:
-    DIRECTORY = 'data/context'  # 上下文文件夹
 
     def __init__(self, message: discord.Message):
         self.message = message
         self.content = message.content
         self.channel_name = message.channel.name
-        self.file_path = f'./{self.DIRECTORY}/{self.channel_name}.json'
+        self.file_path = f'./{DIRECTORY_CONTEXT}/{self.channel_name}.json'
         # 来自用户发的内容
         self.from_user = message.author != bot.user
         self.from_bot = message.author == bot.user
@@ -68,8 +72,7 @@ class Context:
             self.dump_history()
 
     def dump_history(self):
-        if not os.path.exists(self.DIRECTORY):
-            os.makedirs(self.DIRECTORY)
+        makedirs(DIRECTORY_CONTEXT)
         with open(self.file_path, 'w', encoding='utf-8') as file:
             json.dump(self.history, file, ensure_ascii=False, indent=4)
 
@@ -166,18 +169,6 @@ class Context:
             await self.send_message('\n'.join(member_list))
             return
 
-        if Command.check_startswith(self.content, Command.IMAGINE):
-            self.content = Command.remove_startswith(self.content, Command.IMAGINE)
-            async with self.message.channel.typing():
-                response = await self.get_openai_image()
-            # 生成图片
-            if isinstance(response, str):
-                await self.send_message(response)
-            else:
-                response_content = '\n'.join([item['url'] for i, item in enumerate(response['data'])])
-                await self.send_message(response_content)
-                return
-
         summary = Command.check_equal(self.content, Command.SUMMARY)
         if summary:
             self.content = '请帮我将目前给你的上下文梳理成简短的几句话'
@@ -188,7 +179,8 @@ class Context:
             return
 
         if Command.check_startswith(self.content, Command.TOKEN):
-            tokens = self.history_tokens() + len(self.content) - 6
+            self.content = Command.remove_startswith(self.content, Command.TOKEN)
+            tokens = self.history_tokens() + len(self.content)
             await self.send_message(
                     f'当前上下文token数: {tokens}\nGPT-4约花费{GPT_4_TOKEN_PRICE * tokens}人民币\nGPT-3.5约花费{GPT_3_5_TOKEN_PRICE * tokens}人民币\n当前使用的模型: {self.gpt_model}'
             )
@@ -213,6 +205,34 @@ class Context:
         if is_cut_off:
             await self.send_message(
                     f"您上下文内容超过{MAX_GPT_TOKENS}个字符，将对其进行截断")
+
+        if Command.check_startswith(self.content, Command.IMAGINE):
+            self.content = Command.remove_startswith(self.content, Command.IMAGINE)
+            async with self.message.channel.typing():
+                response = await self.get_openai_image()
+            # 生成图片
+            if isinstance(response, str):
+                await self.send_message(response)
+            else:
+                response_content = '\n'.join([item['url'] for i, item in enumerate(response['data'])])
+                await self.send_message(response_content)
+                return
+
+        if Command.check_startswith(self.content, Command.SPEAK):
+            self.content = Command.remove_startswith(self.content, Command.SPEAK)
+            async with self.message.channel.typing():
+                response = await self.get_openai_tts()
+            # 生成语音
+            if isinstance(response, str):
+                await self.send_message(response)
+            else:
+                response_content = response['choices'][0]['text']
+                makedirs(DIRECTORY_AUDIO)
+                audio_file_path = f"{DIRECTORY_AUDIO}/{response['id']}.mp3"
+                with open(audio_file_path, "wb") as f:
+                    f.write(response.choices[0].audio)
+                await self.message.channel.send(content=response_content, file=discord.File(audio_file_path))
+                return
 
         if self.from_bot:
             # 如果是机器人发的内容，则直接返回
@@ -286,7 +306,23 @@ class Context:
             print(e, self.system, self.history)
             return f"ChatGPT API请求失败: {e}"
 
-
+    async def get_openai_tts(self):
+        try:
+            response = openai.Completion.create(
+                    model="text-davinci-003",
+                    prompt=self.content,
+                    max_tokens=20,
+                    temperature=0
+            )
+            print(response)
+            return response
+        except ConnectionError as ce:
+            return "无法连接到ChatGPT API。"
+        except TimeoutError as te:
+            return "ChatGPT API请求超时。"
+        except Exception as e:
+            print(e, self.system, self.history)
+            return f"ChatGPT API请求失败: {e}"
 
     # async def get_openai_usage(self):
     #     openai.api_

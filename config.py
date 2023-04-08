@@ -23,6 +23,7 @@ HELP_CONTENT = '''!help: 获取当前的指令手册
 !token: 获取当前上下文token数
 !members: 获取当前频道所有成员的名称
 !imagine: 生成图片
+!speak: TTS文本转语音，使用text-davinci-003
 '''
 
 DEFAULT_GPT_MODEL = 'gpt-3.5-turbo'  # 默认是gpt-3.5
@@ -41,6 +42,11 @@ GPT_4_TOKEN_PRICE = 45 * 6.88 / 1000000
 GPT_3_5_TOKEN_PRICE = 2 * 6.88 / 1000000
 
 
+DIRECTORY_DATA = 'data'
+DIRECTORY_AUDIO = 'data/audio'
+DIRECTORY_CONTEXT = 'data/context'
+
+
 # 聊天命令
 class Command(constantly.NamedConstant):
     HELP = 'help'
@@ -53,6 +59,7 @@ class Command(constantly.NamedConstant):
     TOKEN = 'token'
     MEMBERS = 'members'
     IMAGINE = 'imagine' # 生成图片命令
+    SPEAK = 'speak'
 
     @staticmethod
     def check_equal(content: str, command: str):
@@ -70,8 +77,7 @@ class Command(constantly.NamedConstant):
 
     @staticmethod
     def remove_startswith(content: str, command: str):
-        return content[len(command) + 1:]
-
+        return content[len(command) + 1:].lstrip()
 
 
 
