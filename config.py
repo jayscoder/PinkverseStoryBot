@@ -2,7 +2,7 @@ import openai
 import os
 import discord
 import constantly
-from enum import Flag
+from enum import Flag, auto
 
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
