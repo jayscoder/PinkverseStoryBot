@@ -309,24 +309,3 @@ class Context:
         except Exception as e:
             print(e, self.system, self.history)
             return f"ChatGPT API请求失败: {e}"
-
-    async def get_openai_tts(self):
-        try:
-            response = openai.Completion.create(
-                    model="text-davinci-003",
-                    prompt=self.content,
-                    max_tokens=20,
-                    temperature=0
-            )
-            print(response)
-            return response
-        except ConnectionError as ce:
-            return "无法连接到ChatGPT API。"
-        except TimeoutError as te:
-            return "ChatGPT API请求超时。"
-        except Exception as e:
-            print(e, self.system, self.history)
-            return f"ChatGPT API请求失败: {e}"
-
-    # async def get_openai_usage(self):
-    #     openai.api_
