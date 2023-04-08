@@ -174,7 +174,7 @@ class Context:
             if isinstance(response, str):
                 await self.send_message(response)
             else:
-                response_content = '\n'.join([f"![{i}]({item['url']})" for i, item in enumerate(response['data'])])
+                response_content = '\n'.join([item['url'] for i, item in enumerate(response['data'])])
                 await self.send_message(response_content)
                 return
 
