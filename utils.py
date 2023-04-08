@@ -244,7 +244,8 @@ class Context:
             response_content += f'''
 > tokens: {completion_tokens} + {prompt_tokens} = {total_tokens}
 > model: {current_model}
-> GPT-3.5: {total_tokens * GPT_3_5_TOKEN_PRICE} GPT-4: ¥{total_tokens * GPT_4_TOKEN_PRICE}'''
+> GPT-3.5: {total_tokens * GPT_3_5_TOKEN_PRICE}
+> GPT-4: ¥{total_tokens * GPT_4_TOKEN_PRICE}'''
             self.dump_history()
             await self.send_message(response_content)
         else:
