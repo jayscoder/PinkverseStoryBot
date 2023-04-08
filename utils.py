@@ -132,7 +132,7 @@ class Context:
         if self.channel_mode == ChannelMode.GROUP:
             # 群模式下需要添加群成员列表
             self.system += '\n群成员列表:\n' + '\n'.join(await
-                                                            self.get_member_list())
+                                                         self.get_member_list())
 
         # 帮助命令
         if Command.check_equal(self.content, command=Command.HELP):
@@ -182,7 +182,7 @@ class Context:
         if Command.check_startswith(self.content, Command.TOKEN):
             tokens = self.history_tokens() + len(self.content) - 6
             await self.send_message(
-                    f'当前上下文token数: {tokens}\nGPT-4约花费{45 * 6.88 / 1000000 * tokens}人民币\nGPT-3.5约花费{2 * 6.88 / 1000000 * tokens}人民币\n当前使用的模型: {self.gpt_model}'
+                    f'当前上下文token数: {tokens}\nGPT-4约花费{GPT_4_TOKEN_PRICE * tokens}人民币\nGPT-3.5约花费{GPT_3_5_TOKEN_PRICE * tokens}人民币\n当前使用的模型: {self.gpt_model}'
             )
             return
 
@@ -233,13 +233,12 @@ class Context:
             current_model = response['model']
             response_content += f'''
 > tokens: {completion_tokens} + {prompt_tokens} = {total_tokens}
-> model: {current_model}'''
-
+> model: {current_model}
+> GPT-3.5: {total_tokens * GPT_3_5_TOKEN_PRICE} GPT-4: ¥{total_tokens * GPT_4_TOKEN_PRICE}'''
             self.dump_history()
             await self.send_message(response_content)
         else:
             await self.send_message("ChatGPT API没有返回有效的响应。")
-
 
     # openai聊天模型
     async def get_openai_chat_completion(self):
@@ -260,7 +259,6 @@ class Context:
         except Exception as e:
             print(e, self.system, self.history)
             return f"ChatGPT API请求失败: {e}"
-
 
     # async def get_openai_usage(self):
     #     openai.api_

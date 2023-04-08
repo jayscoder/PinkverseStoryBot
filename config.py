@@ -36,6 +36,8 @@ available_models = openai.Model.list()['data']  # 当前支持的模型类型
 available_model_ids = [model.id for model in available_models]
 
 
+GPT_4_TOKEN_PRICE = 45 * 6.88 / 1000000
+GPT_3_5_TOKEN_PRICE = 2 * 6.88 / 1000000
 
 
 # 聊天命令
