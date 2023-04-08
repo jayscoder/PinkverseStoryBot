@@ -207,9 +207,9 @@ class Context:
                     f"您上下文内容超过{MAX_GPT_TOKENS}个字符，将对其进行截断")
 
         if Command.check_startswith(self.content, Command.IMAGINE):
-            self.content = Command.remove_startswith(self.content, Command.IMAGINE)
+            width, height, self.content = Command.parse_imagine(self.content)
             async with self.message.channel.typing():
-                response = await self.get_openai_image()
+                response = await self.get_openai_image(width=width, height=height)
             # 生成图片
             if isinstance(response, str):
                 await self.send_message(response)
@@ -289,12 +289,16 @@ class Context:
             print(e, self.system, self.history)
             return f"ChatGPT API请求失败: {e}"
 
-    async def get_openai_image(self):
+    async def get_openai_image(self, width: int, height: int):
         try:
+            if width > 2048:
+                width = 2048
+            if height > 2048:
+                height = 2048
             response = openai.Image.create(
                     prompt=f'{self.content}',
                     n=1,
-                    size="1024x1024"
+                    size=f"{width}x{height}"
             )
             print(response)
             return response

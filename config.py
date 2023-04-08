@@ -3,6 +3,7 @@ import os
 import discord
 import constantly
 from enum import Flag, auto
+import re
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 bot = discord.Client(
@@ -22,7 +23,9 @@ HELP_CONTENT = '''!help: 获取当前的指令手册
 !clear: 清空上下文
 !token: 获取当前上下文token数
 !members: 获取当前频道所有成员的名称
-!imagine: 生成图片
+!imagine[400x500]: 生成400x500图片
+!imagine[800]: 生成800x800图片
+!imagine: 生成1024图片
 '''
 
 DEFAULT_GPT_MODEL = 'gpt-3.5-turbo'  # 默认是gpt-3.5
@@ -78,6 +81,23 @@ class Command(constantly.NamedConstant):
     def remove_startswith(content: str, command: str):
         return content[len(command) + 1:].lstrip()
 
+    @staticmethod
+    def parse_imagine(text):
+        pattern1 = r'^!imagine\[(\d+)x(\d+)\](.*)'
+        pattern2 = r'^!imagine\[(\d+)\](.*)'
+        pattern3 = r'^!imagine(.*)'
+        match1 = re.match(pattern1, text)
+        if match1:
+            width, height, remaining = match1.groups()
+            return int(width), int(height), remaining
+        match2 = re.match(pattern2, text)
+        if match2:
+            size, remaining = match2.groups()
+            return int(size), int(size), remaining
+        match3 = re.match(pattern3, text)
+        if match3:
+            return 1024, 1024, match3.group(1)
+        return None
 
 
 # 频道类型(标志类型)
