@@ -166,8 +166,8 @@ class Context:
             await self.send_message('\n'.join(member_list))
             return
 
-        if Command.check_startswith(self.content, Command.IMAGE):
-            self.content = Command.remove_startswith(self.content, Command.IMAGE)
+        if Command.check_startswith(self.content, Command.IMAGINE):
+            self.content = Command.remove_startswith(self.content, Command.IMAGINE)
             async with self.message.channel.typing():
                 response = await self.get_openai_image()
             # 生成图片
@@ -285,6 +285,8 @@ class Context:
         except Exception as e:
             print(e, self.system, self.history)
             return f"ChatGPT API请求失败: {e}"
+
+
 
     # async def get_openai_usage(self):
     #     openai.api_
