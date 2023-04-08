@@ -125,7 +125,10 @@ class Context:
 
     # 获取当前历史token
     def history_tokens(self):
-        return len(json.dumps(self.history)) + len(self.system)
+        tokens = 0
+        for item in self.history:
+            tokens += len(item['content'])
+        return tokens + len(self.system)
 
     # on_message事件
     async def on_message(self):
