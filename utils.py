@@ -218,22 +218,6 @@ class Context:
                 await self.send_message(response_content)
                 return
 
-        # if Command.check_startswith(self.content, Command.SPEAK):
-        #     self.content = Command.remove_startswith(self.content, Command.SPEAK)
-        #     async with self.message.channel.typing():
-        #         response = await self.get_openai_tts()
-        #     # 生成语音
-        #     if isinstance(response, str):
-        #         await self.send_message(response)
-        #     else:
-        #         response_content = response['choices'][0]['text']
-        #         makedirs(DIRECTORY_AUDIO)
-        #         audio_file_path = f"{DIRECTORY_AUDIO}/{response['id']}.mp3"
-        #         with open(audio_file_path, "wb") as f:
-        #             f.write(response.choices[0].audio)
-        #         await self.message.channel.send(content=response_content, file=discord.File(audio_file_path))
-        #         return
-
         if self.from_bot:
             # 如果是机器人发的内容，则直接返回
             return
@@ -291,10 +275,10 @@ class Context:
 
     async def get_openai_image(self, width: int, height: int):
         try:
-            if width > 2048:
-                width = 2048
-            if height > 2048:
-                height = 2048
+            if width > 1024:
+                width = 1024
+            if height > 1024:
+                height = 1024
             response = openai.Image.create(
                     prompt=f'{self.content}',
                     n=1,
