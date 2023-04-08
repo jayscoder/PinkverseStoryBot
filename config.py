@@ -23,8 +23,8 @@ HELP_CONTENT = '''!help: 获取当前的指令手册
 !clear: 清空上下文
 !token: 获取当前上下文token数
 !members: 获取当前频道所有成员的名称
-!imagine[400x500]: 生成400x500图片
-!imagine[800]: 生成800x800图片
+!imagine[256x256]: 生成256x256图片
+!imagine[512]: 生成512图片
 !imagine: 生成1024图片
 '''
 
