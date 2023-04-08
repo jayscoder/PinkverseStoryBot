@@ -167,13 +167,14 @@ class Context:
             return
 
         if Command.check_startswith(self.content, Command.IMAGE):
-            # 生成图片
             self.content = Command.remove_startswith(self.content, Command.IMAGE)
-            response = await self.get_openai_image()
+            async with self.message.channel.typing():
+                response = await self.get_openai_image()
+            # 生成图片
             if isinstance(response, str):
                 await self.send_message(response)
             else:
-                response_content = '\n'.join([f"![{item['url']}]({item['url']})" for item in response['data']])
+                response_content = '\n'.join([f"![{i}]({item['url']})" for i, item in enumerate(response['data'])])
                 await self.send_message(response_content)
                 return
 
@@ -218,9 +219,7 @@ class Context:
             return
 
         async with self.message.channel.typing():
-            response_task = asyncio.create_task(self.get_openai_chat_completion())
-            # 等待结果
-            response = await response_task
+            response = await self.get_openai_chat_completion()
 
         if isinstance(response, str):
             await self.send_message(response)
