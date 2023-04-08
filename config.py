@@ -23,7 +23,6 @@ HELP_CONTENT = '''!help: 获取当前的指令手册
 !token: 获取当前上下文token数
 !members: 获取当前频道所有成员的名称
 !imagine: 生成图片
-!speak: TTS文本转语音，使用text-davinci-003
 '''
 
 DEFAULT_GPT_MODEL = 'gpt-3.5-turbo'  # 默认是gpt-3.5
