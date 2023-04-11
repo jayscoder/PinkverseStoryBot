@@ -175,6 +175,8 @@ class Context:
         if Command.check_startswith(self.content, Command.EVAL):
             self.is_eval = True
             self.content = Command.remove_startswith(self.content, Command.EVAL)
+        else:
+            self.is_eval = False
 
         summary = Command.check_equal(self.content, Command.SUMMARY)
         if summary:
@@ -259,8 +261,7 @@ class Context:
 > GPT-3.5: {total_tokens * GPT_3_5_TOKEN_PRICE}
 > GPT-4: ¥{total_tokens * GPT_4_TOKEN_PRICE}'''
             self.dump_history()
-
-
+            await self.send_message(response_content)
         else:
             await self.send_message("ChatGPT API没有返回有效的响应。")
 
