@@ -172,7 +172,6 @@ class Context:
             await self.send_message('\n'.join(member_list))
             return
 
-
         if Command.check_startswith(self.content, Command.EVAL):
             self.is_eval = True
             self.content = Command.remove_startswith(self.content, Command.EVAL)
@@ -249,6 +248,11 @@ class Context:
             prompt_tokens = response['usage']['prompt_tokens']
             total_tokens = response['usage']['total_tokens']
             current_model = response['model']
+
+            if self.is_eval:
+                eval_result = eval(response_content)
+                response_content = f'''输出: {eval_result}\n\n代码: {response_content}'''
+
             response_content += f'''
 > tokens: {completion_tokens} + {prompt_tokens} = {total_tokens}
 > model: {current_model}
@@ -256,11 +260,7 @@ class Context:
 > GPT-4: ¥{total_tokens * GPT_4_TOKEN_PRICE}'''
             self.dump_history()
 
-            if self.is_eval:
-                eval_result = eval(response_content)
-                await self.send_message(f'''输出: {eval_result}\n\n代码: {response_content}''')
-            else:
-                await self.send_message(response_content)
+
         else:
             await self.send_message("ChatGPT API没有返回有效的响应。")
 
