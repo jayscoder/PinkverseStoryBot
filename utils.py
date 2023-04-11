@@ -54,6 +54,9 @@ class Context:
             else:
                 self.system = DEFAULT_GPT_SYSTEM
 
+        self.is_eval = False # 是否执行返回的代码
+
+
     def load_history(self):
         if self.channel_mode & ChannelMode.NO_HISTORY:
             # 无历史
@@ -169,6 +172,11 @@ class Context:
             await self.send_message('\n'.join(member_list))
             return
 
+
+        if Command.check_startswith(self.content, Command.EVAL):
+            self.is_eval = True
+            self.content = Command.remove_startswith(self.content, Command.EVAL)
+
         summary = Command.check_equal(self.content, Command.SUMMARY)
         if summary:
             self.content = '请帮我将目前给你的上下文梳理成简短的几句话'
@@ -247,7 +255,12 @@ class Context:
 > GPT-3.5: {total_tokens * GPT_3_5_TOKEN_PRICE}
 > GPT-4: ¥{total_tokens * GPT_4_TOKEN_PRICE}'''
             self.dump_history()
-            await self.send_message(response_content)
+
+            if self.is_eval:
+                eval_result = eval(response_content)
+                await self.send_message(f'''输出: {eval_result}\n\n代码: {response_content}''')
+            else:
+                await self.send_message(response_content)
         else:
             await self.send_message("ChatGPT API没有返回有效的响应。")
 

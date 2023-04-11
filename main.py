@@ -12,7 +12,6 @@ async def on_ready():
             # await channel.send('我上线啦')
             print(channel)
 
-
 # 定义bot接受到消息的事件
 @bot.event
 async def on_message(message: discord.Message):

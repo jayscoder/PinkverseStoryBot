@@ -62,6 +62,7 @@ class Command(constantly.NamedConstant):
     MEMBERS = 'members'
     IMAGINE = 'imagine' # 生成图片命令
     SPEAK = 'speak'
+    EVAL = "eval" # 执行文本中的python代码
 
     @staticmethod
     def check_equal(content: str, command: str):
