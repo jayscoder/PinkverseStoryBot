@@ -15,7 +15,7 @@ class DMContext:
         self.from_bot = message.author == bot.user
         # 判断当前应该采用哪个gpt_model
         self.gpt_model = DEFAULT_GPT_MODEL
-        self.system = f'你是在和{message.author.display_name or message.author.nick or message.author.name}聊天'
+        self.system = f'你是在和一个叫做"{message.author.display_name or message.author.nick or message.author.name}"的人聊天'
         # 加载历史数据
         self.history = []
         self.load_history()
