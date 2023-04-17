@@ -13,9 +13,11 @@ class DMContext:
         # 来自用户发的内容
         self.from_user = message.author != bot.user
         self.from_bot = message.author == bot.user
+        self.author_name = message.author.display_name or message.author.nick or message.author.name or 'NoName'
         # 判断当前应该采用哪个gpt_model
         self.gpt_model = DEFAULT_GPT_MODEL
-        self.system = f'你是在和一个叫做"{message.author.display_name or message.author.nick or message.author.name}"的人聊天'
+        self.system = f'''user是一个真实用户，他的名字叫{self.author_name}
+assistant是user的人工智能助手'''
         # 加载历史数据
         self.history = []
         self.load_history()
