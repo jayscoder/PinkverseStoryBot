@@ -217,17 +217,14 @@ class DMContext:
                     'content': self.system
                 }] + post_messages
 
-            print(post_messages)
             response = openai.ChatCompletion.create(model=self.gpt_model,
                                                     messages=post_messages)
-            print(response)
             return response
         except ConnectionError as ce:
             return "无法连接到ChatGPT API。"
         except TimeoutError as te:
             return "ChatGPT API请求超时。"
         except Exception as e:
-            print(e, self.system, self.history)
             return f"ChatGPT API请求失败: {e}"
 
     async def get_openai_image(self, width: int, height: int):
@@ -241,12 +238,10 @@ class DMContext:
                     n=1,
                     size=f"{width}x{height}"
             )
-            print(response)
             return response
         except ConnectionError as ce:
             return "无法连接到ChatGPT API。"
         except TimeoutError as te:
             return "ChatGPT API请求超时。"
         except Exception as e:
-            print(e, self.system, self.history)
             return f"ChatGPT API请求失败: {e}"

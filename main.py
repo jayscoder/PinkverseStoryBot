@@ -20,7 +20,6 @@ async def on_ready():
 async def on_message(message: discord.Message):
     if isinstance(message.channel, discord.DMChannel):
         # 私信
-        print(f'{message.author.display_name}: {message.content}')
         await DMContext(message).on_message()
     else:
         # 群聊
