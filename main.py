@@ -17,7 +17,7 @@ async def on_ready():
             print(channel)
 
 
-# 定义bot接受到消息的事件
+# 定义bot接收到消息的事件
 @bot.event
 async def on_message(message: discord.Message):
     if isinstance(message.channel, discord.DMChannel):
@@ -28,6 +28,19 @@ async def on_message(message: discord.Message):
         # 群聊
         print(f'{message.channel.name}: {message.content}')
         await GroupContext(message).on_message()
+
+
+# 定义bot接收到消息编辑的事件
+@bot.event
+async def on_message_edit(before: discord.Message, after: discord.Message):
+    if isinstance(after.channel, discord.DMChannel):
+        # 私信
+        print(f'{after.author.display_name}')
+        await DMContext(after).on_message()
+    else:
+        # 群聊
+        print(f'{after.channel.name}: {after.content}')
+        await GroupContext(after).on_message()
 
 
 @tree.command(name="clear", description="清空历史")
