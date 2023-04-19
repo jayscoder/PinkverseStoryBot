@@ -29,7 +29,7 @@ async def on_message(message: discord.Message):
         print(f'{message.channel.name}: {message.content}')
         await GroupContext(message).on_message()
 
-@tree.command(name="setting", description="设置GPT bot")
+@tree.command(name="settings", description="设置GPT bot")
 async def first_command(interaction):
     print('interaction', type(interaction))
     await interaction.response.send_message("Hello!")
