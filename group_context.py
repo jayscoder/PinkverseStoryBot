@@ -3,6 +3,7 @@ import json
 import config
 from utils import *
 
+
 # 群聊上下文
 class GroupContext:
 
@@ -14,6 +15,7 @@ class GroupContext:
         # 来自用户发的内容
         self.from_user = message.author != bot.user
         self.from_bot = message.author == bot.user
+        self.document = ''  # 文档里的内容
 
         self.channel_mode = ChannelMode.DEFAULT
         # 判断当前频道类型
@@ -41,8 +43,7 @@ class GroupContext:
             else:
                 self.system = DEFAULT_GPT_SYSTEM
 
-        self.is_eval = False # 是否执行返回的代码
-
+        self.is_eval = False  # 是否执行返回的代码
 
     def load_history(self):
         if self.channel_mode & ChannelMode.NO_HISTORY:
@@ -65,7 +66,6 @@ class GroupContext:
         makedirs(DIRECTORY_CONTEXT)
         with open(self.file_path, 'w', encoding='utf-8') as file:
             json.dump(self.history, file, ensure_ascii=False, indent=4)
-
 
     def history_content(self):
         return '\n'.join(
@@ -96,26 +96,26 @@ class GroupContext:
         ]
         return member_nicknames
 
-    # 截断历史，返回值：是否截断了
-    def cut_off_history(self, max_tokens) -> bool:
-        # 只保留最近N条消息，这N条消息的字符总数不能超过MAX_TOKENS
-        max_tokens -= len(self.system)  # 要预留出system的空间
-        temp_history = []
-        temp_history_tokens = 0
-        is_cut_off = False
-
-        # 从最后一条消息开始遍历，只保留2000个字符
-        for i in range(len(self.history) - 1, -1, -1):
-            item_history = self.history[i]
-            item_history['content'] = item_history['content'][:max_tokens]
-            temp_history_tokens += len(item_history['content'])
-            if temp_history_tokens > max_tokens:
-                is_cut_off = True
-                break
-            temp_history.insert(0, item_history)
-        self.history = temp_history
-        self.dump_history()
-        return is_cut_off
+    # # 截断历史，返回值：是否截断了
+    # def cut_off_history(self, max_tokens) -> bool:
+    #     # 只保留最近N条消息，这N条消息的字符总数不能超过MAX_TOKENS
+    #     max_tokens -= len(self.system)  # 要预留出system的空间
+    #     temp_history = []
+    #     temp_history_tokens = 0
+    #     is_cut_off = False
+    #
+    #     # 从最后一条消息开始遍历，只保留2000个字符
+    #     for i in range(len(self.history) - 1, -1, -1):
+    #         item_history = self.history[i]
+    #         item_history['content'] = item_history['content'][:max_tokens]
+    #         temp_history_tokens += len(item_history['content'])
+    #         if temp_history_tokens > max_tokens:
+    #             is_cut_off = True
+    #             break
+    #         temp_history.insert(0, item_history)
+    #     self.history = temp_history
+    #     self.dump_history()
+    #     return is_cut_off
 
     # 获取当前历史token
     def history_tokens(self):
@@ -123,6 +123,58 @@ class GroupContext:
         for item in self.history:
             tokens += len(item['content'])
         return tokens + len(self.system)
+
+    # openai聊天模型
+    async def get_openai_chat_completion(self, history: list):
+        try:
+            post_messages = history
+            if self.system != '':
+                post_messages = [{
+                    'role'   : 'system',
+                    'content': self.system
+                }] + post_messages
+
+            response = openai.ChatCompletion.create(model=self.gpt_model,
+                                                    messages=post_messages)
+
+            for choice in response.choices:
+                post_messages.append(choice.message)
+
+            # 将数据永久保存下来，方便以后用来训练
+            jsonl_append_json(
+                    dirname=config.DIRECTORY_HISTORY,
+                    channel_name=self.channel_name,
+                    new_item=post_messages)
+
+            return response
+        except ConnectionError as ce:
+            return "无法连接到ChatGPT API。"
+        except TimeoutError as te:
+            return "ChatGPT API请求超时。"
+        except Exception as e:
+            print(e, self.system, self.history)
+            return f"ChatGPT API请求失败: {e}"
+
+    async def get_openai_image(self, width: int, height: int):
+        try:
+            if width > 1024:
+                width = 1024
+            if height > 1024:
+                height = 1024
+            response = openai.Image.create(
+                    prompt=f'{self.content}',
+                    n=1,
+                    size=f"{width}x{height}"
+            )
+            print(response)
+            return response
+        except ConnectionError as ce:
+            return "无法连接到ChatGPT API。"
+        except TimeoutError as te:
+            return "ChatGPT API请求超时。"
+        except Exception as e:
+            print(e, self.system, self.history)
+            return f"ChatGPT API请求失败: {e}"
 
     # on_message事件
     async def on_message(self):
@@ -160,20 +212,14 @@ class GroupContext:
             await self.send_message('\n'.join(member_list))
             return
 
-        if Command.check_startswith(self.content, Command.EVAL):
-            self.is_eval = True
-            self.content = Command.remove_startswith(self.content, Command.EVAL)
-        else:
-            self.is_eval = False
-
-        summary = Command.check_equal(self.content, Command.SUMMARY)
-        if summary:
-            self.content = '请帮我将目前给你的上下文梳理成简短的几句话'
-
         # 如果是system命令
         if Command.check_equal(self.content, Command.SYSTEM):
             await self.send_message(self.system)
             return
+
+        is_summary = Command.check_equal(self.content, Command.SUMMARY)
+        if is_summary:
+            self.content = SUMMARY_CONTENT
 
         if Command.check_startswith(self.content, Command.TOKEN):
             self.content = Command.remove_startswith(self.content, Command.TOKEN)
@@ -183,25 +229,22 @@ class GroupContext:
             )
             return
 
+        is_long = Command.check_startswith(self.content, Command.LONG)
+        if is_long:
+            self.content = Command.remove_startswith(self.content, Command.LONG)
+
+        # 如果消息包含附件
+        if self.message.attachments:
+            for attachment in self.message.attachments:
+                # 下载附件，处理附件的字节数据
+                file_data = await attachment.read()
+                # 如果需要读取文件的内容，请确保文件是可阅读的文本类型
+                self.document += '\n' + file_data.decode("utf-8")
+
         if self.from_user:
             # 用户发的普通内容
-
-            # 如果消息包含附件
-            if self.message.attachments:
-                for attachment in self.message.attachments:
-                    # 下载附件，处理附件的字节数据
-                    file_data = await attachment.read()
-                    # 如果需要读取文件的内容，请确保文件是可阅读的文本类型
-                    self.content += '\n' + file_data.decode("utf-8")
-
             if self.channel_mode == ChannelMode.GROUP:
                 self.content = f'{self.message.author.name}: {self.content}'
-            self.history.append({ "role": 'user', "content": self.content })
-
-        is_cut_off = self.cut_off_history(max_tokens=MAX_GPT_TOKENS)
-        if is_cut_off:
-            await self.send_message(
-                    f"您上下文内容超过{MAX_GPT_TOKENS}个字符，将对其进行截断")
 
         if Command.check_startswith(self.content, Command.IMAGINE):
             width, height, self.content = Command.parse_imagine(self.content)
@@ -219,87 +262,88 @@ class GroupContext:
             # 如果是机器人发的内容，则直接返回
             return
 
-        async with self.message.channel.typing():
-            response = await self.get_openai_chat_completion()
+        if not is_long:
+            # 不是处理大文本
+            if self.document != '':
+                self.history.append({ "role": 'user', "content": self.document + '\n' + self.content })
+            else:
+                self.history.append({ "role": 'user', "content": self.content })
 
-        if isinstance(response, str):
-            await self.send_message(response)
-        elif len(response.choices) > 0:
-            if summary:
-                # 归纳整理
-                self.history = []
+            async with self.message.channel.typing():
+                response = await self.get_openai_chat_completion(history=self.history)
 
-            response_content = '\n\n'.join(
-                    [choice.message.content or 'None' for choice in response.choices])
-            if not self.channel_mode & ChannelMode.NO_HISTORY:
-                for choice in response.choices:
-                    self.history.append(choice.message)
-            completion_tokens = response['usage']['completion_tokens']
-            prompt_tokens = response['usage']['prompt_tokens']
-            total_tokens = response['usage']['total_tokens']
-            current_model = response['model']
+            if isinstance(response, str):
+                await self.send_message(response)
+            elif len(response.choices) == 0:
+                await self.send_message("ChatGPT API没有返回有效的响应。")
+            else:
+                if is_summary:
+                    # 归纳整理
+                    self.history = []
 
-            if self.is_eval:
-                eval_result = eval(response_content)
-                response_content = f'''输出: {eval_result}\n\n代码: {response_content}'''
+                response_content = extract_openai_chat_response_content(response)
 
-            response_content += f'''
-> tokens: {completion_tokens} + {prompt_tokens} = {total_tokens}
-> model: {current_model}
-> GPT-3.5: {total_tokens * GPT_3_5_TOKEN_PRICE}
-> GPT-4: ¥{total_tokens * GPT_4_TOKEN_PRICE}'''
-            self.dump_history()
-            await self.send_message(response_content)
+                if not self.channel_mode & ChannelMode.NO_HISTORY:
+                    for choice in response.choices:
+                        self.history.append(choice.message)
+
+                completion_tokens = response['usage']['completion_tokens']
+                prompt_tokens = response['usage']['prompt_tokens']
+                total_tokens = response['usage']['total_tokens']
+                current_model = response['model']
+
+                response_content += f'''
+    > tokens: {completion_tokens} + {prompt_tokens} = {total_tokens}
+    > model: {current_model}
+    > GPT-3.5: {total_tokens * GPT_3_5_TOKEN_PRICE}
+    > GPT-4: ¥{total_tokens * GPT_4_TOKEN_PRICE}'''
+                self.dump_history()
+                await self.send_message(response_content)
         else:
-            await self.send_message("ChatGPT API没有返回有效的响应。")
+            if self.document == '':
+                await self.send_message('大文本内容需要放在文件里上传')
+                return
 
-    # openai聊天模型
-    async def get_openai_chat_completion(self):
-        try:
-            post_messages = self.history
-            if self.system != '':
-                post_messages = [{
-                    'role'   : 'system',
-                    'content': self.system
-                }] + post_messages
+            # 处理大文本（大文本内容在document里）（本次处理不会放到context历史里，但是会考虑上下文）
+            temp_memory_history = []
 
-            response = openai.ChatCompletion.create(model=self.gpt_model,
-                                                    messages=post_messages)
+            for line in self.document.splitlines():
+                line = line.strip()
+                if line == '':
+                    continue
 
-            for choice in response.choices:
-                post_messages.append(choice.message)
-            # 将数据永久保存下来，方便以后用来训练
-            jsonl_append_json(
-                    dirname=config.DIRECTORY_HISTORY,
-                    channel_name=self.channel_name,
-                    new_item=post_messages)
+                line_item = {
+                    'role'   : 'user',
+                    'content': line + '\n' + self.content
+                }
+                completion_tokens = 0
+                prompt_tokens = 0
+                total_tokens = 0
+                current_model = ''
 
-            return response
-        except ConnectionError as ce:
-            return "无法连接到ChatGPT API。"
-        except TimeoutError as te:
-            return "ChatGPT API请求超时。"
-        except Exception as e:
-            print(e, self.system, self.history)
-            return f"ChatGPT API请求失败: {e}"
+                async with self.message.channel.typing():
+                    response = await self.get_openai_chat_completion(
+                        history=self.history + temp_memory_history + [line_item])
+                if isinstance(response, str):
+                    await self.send_message(response)
+                    break
+                elif len(response.choices) == 0:
+                    await self.send_message("ChatGPT API没有返回有效的响应。")
+                    break
+                else:
+                    response_content = extract_openai_chat_response_content(response)
 
-    async def get_openai_image(self, width: int, height: int):
-        try:
-            if width > 1024:
-                width = 1024
-            if height > 1024:
-                height = 1024
-            response = openai.Image.create(
-                    prompt=f'{self.content}',
-                    n=1,
-                    size=f"{width}x{height}"
-            )
-            print(response)
-            return response
-        except ConnectionError as ce:
-            return "无法连接到ChatGPT API。"
-        except TimeoutError as te:
-            return "ChatGPT API请求超时。"
-        except Exception as e:
-            print(e, self.system, self.history)
-            return f"ChatGPT API请求失败: {e}"
+                    completion_tokens += response['usage']['completion_tokens']
+                    prompt_tokens += response['usage']['prompt_tokens']
+                    total_tokens += response['usage']['total_tokens']
+                    current_model = response['model']
+                    await self.send_message(response_content)
+
+                    temp_memory_history = [{ 'role': 'system', 'content': line }]
+
+                tokens_content = f'''
+                    > tokens: {completion_tokens} + {prompt_tokens} = {total_tokens}
+                    > model: {current_model}
+                    > GPT-3.5: {total_tokens * GPT_3_5_TOKEN_PRICE}
+                    > GPT-4: ¥{total_tokens * GPT_4_TOKEN_PRICE}'''
+                await self.send_message(tokens_content)
