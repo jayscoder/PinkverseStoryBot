@@ -322,9 +322,9 @@ class GroupContext:
                 if len(lines) == 0:
                     lines.append(line)
                     continue
-                if len(lines[-1] + line) < 1000:
+                if len(lines[-1] + '\n' + line) < 1000:
                     # 同时最多只处理1000个字符
-                    lines[-1] += line
+                    lines[-1] += '\n' + line
                     continue
                 lines.append(line)
 
