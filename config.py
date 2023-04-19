@@ -26,6 +26,7 @@ HELP_CONTENT = '''!help: 获取当前的指令手册
 !imagine[256x256]: 生成256x256图片
 !imagine[512]: 生成512图片
 !imagine: 生成1024图片
+!long: 处理大文本，大文本需要放在文件里上传
 '''
 
 DEFAULT_GPT_MODEL = 'gpt-3.5-turbo'  # 默认是gpt-3.5
@@ -48,6 +49,9 @@ DIRECTORY_DATA = 'data'
 DIRECTORY_AUDIO = 'data/audio'
 DIRECTORY_CONTEXT = 'data/context'
 DIRECTORY_HISTORY = 'data/history'
+DIRECTORY_OUTPUT = 'data/output'
+
+SUMMARY_CONTENT = '请帮我将目前给你的上下文梳理成简短的几句话'
 
 # 聊天命令
 class Command(constantly.NamedConstant):
@@ -62,7 +66,7 @@ class Command(constantly.NamedConstant):
     MEMBERS = 'members'
     IMAGINE = 'imagine' # 生成图片命令
     SPEAK = 'speak'
-    EVAL = "eval" # 执行文本中的python代码
+    LONG = 'long' # 执行长文本处理（逐行处理分析（单行不能超过2000个字符），不包含过去的历史）
 
     @staticmethod
     def check_equal(content: str, command: str):
