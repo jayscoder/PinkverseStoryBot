@@ -67,6 +67,9 @@ async def command_temperature(interaction: discord.interactions.Interaction):
         setting['temperature'] = selected_value
         # 保存新的配置
         save_channel_setting(channel_id=channel_id, setting=setting)
+        temperature_select.options = [
+            discord.SelectOption(label=f'{t}', value=f'{t}', default=setting['temperature'] == t) for t
+            in all_temperature]
         await inter.response.edit_message(
                 content=f'ChatGPT temperature已更新为{selected_value}',
                 view=view
@@ -78,8 +81,8 @@ async def command_temperature(interaction: discord.interactions.Interaction):
 
     await interaction.response.send_message(
             f'''**选择temperature**
-            What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
-            We generally recommend altering this or top_p but not both.''',
+What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
+We generally recommend altering this or top_p but not both.''',
             view=view,
     )
 
