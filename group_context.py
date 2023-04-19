@@ -352,7 +352,6 @@ class GroupContext:
                     post_history = [{
                         'role'   : 'system',
                         'content': summary,
-                        'name'   : str(self.message.author.id)
                     }]
 
                 post_history += [{
