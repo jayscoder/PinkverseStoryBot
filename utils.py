@@ -8,6 +8,6 @@ def makedirs(directory: str):
 def jsonl_append_json(dirname: str, channel_name: str, new_item: list):
     makedirs(dirname)
     with open(os.path.join(dirname, f'{channel_name}.jsonl'), 'a+', encoding='utf-8') as f:
-        json.dump(new_item, f)
+        json.dump(new_item, f, ensure_ascii=False)
         # 加上换行符
         f.write('\n')
