@@ -29,7 +29,7 @@ async def on_message(message: discord.Message):
         await GroupContext(message).on_message()
 
 @tree.command(name="settings", description="设置GPT bot")
-async def settings(interaction):
+async def command_settings(interaction):
     print('settings interaction', type(interaction))
     await interaction.response.send_message("Hello!")
 
