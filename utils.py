@@ -4,9 +4,11 @@ from datetime import datetime
 import time
 import yaml
 
+
 def makedirs(directory: str):
     if not os.path.exists(directory):
         os.makedirs(directory)
+
 
 def jsonl_append_json(dirname: str, channel_name: str, new_item: list):
     makedirs(dirname)
@@ -26,3 +28,22 @@ def time_id() -> str:
     current_timestamp = time.time()
     formatted_time = datetime.fromtimestamp(current_timestamp).strftime('%Y%m%d%H%M%S')
     return formatted_time
+
+
+def get_channel_setting(channel_id: int) -> dict:
+    filename = os.path.join(DIRECTORY_SETTING, f'{channel_id}.json')
+    data = { }
+    if os.path.exists(filename):
+        with open(filename, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    if 'temperature' not in data:
+        data['temperature'] = 1
+    return data
+
+
+def save_channel_setting(channel_id: int, setting: dict):
+    makedirs(DIRECTORY_SETTING)
+    filename = os.path.join(DIRECTORY_SETTING, f'{channel_id}.json')
+    with open(filename, 'w', encoding='utf-8') as f:
+        json.dump(setting, f, ensure_ascii=False)
+
