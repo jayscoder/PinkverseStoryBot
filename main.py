@@ -36,6 +36,7 @@ async def command_clear(interaction: discord.interactions.Interaction):
     filepath = os.path.join(DIRECTORY_CONTEXT, f'{channel_name}.json')
     if os.path.exists(filepath):
         os.remove(filepath)
+    await interaction.response.send_message('已清空历史')
 
 
 @tree.command(name="temperature", description="设置GPT bot temperature")
