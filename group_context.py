@@ -19,6 +19,7 @@ class GroupContext:
         self.from_user = message.author != bot.user
         self.from_bot = message.author == bot.user
         self.document = ''  # 文档里的内容
+        self.setting = get_channel_setting(channel_id=message.channel.id)
 
         self.channel_mode = ChannelMode.DEFAULT
         # 判断当前频道类型
@@ -140,7 +141,8 @@ class GroupContext:
             response = openai.ChatCompletion.create(
                     model=self.gpt_model,
                     messages=post_messages,
-                    user=f'{self.message.author.id}'
+                    user=f'{self.message.author.id}',
+                    temperature=self.setting['temperature']
             )
 
             for choice in response.choices:
