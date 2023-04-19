@@ -47,7 +47,7 @@ GPT_3_5_TOKEN_PRICE = 2 * 6.88 / 1000000
 DIRECTORY_DATA = 'data'
 DIRECTORY_AUDIO = 'data/audio'
 DIRECTORY_CONTEXT = 'data/context'
-
+DIRECTORY_HISTORY = 'data/history'
 
 # 聊天命令
 class Command(constantly.NamedConstant):

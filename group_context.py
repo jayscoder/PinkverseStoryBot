@@ -1,4 +1,6 @@
 import json
+
+import config
 from utils import *
 
 # 群聊上下文
@@ -63,6 +65,7 @@ class GroupContext:
         makedirs(DIRECTORY_CONTEXT)
         with open(self.file_path, 'w', encoding='utf-8') as file:
             json.dump(self.history, file, ensure_ascii=False, indent=4)
+
 
     def history_content(self):
         return '\n'.join(
@@ -260,10 +263,17 @@ class GroupContext:
                     'content': self.system
                 }] + post_messages
 
-            print(post_messages)
             response = openai.ChatCompletion.create(model=self.gpt_model,
                                                     messages=post_messages)
-            print(response)
+
+            for choice in response.choices:
+                post_messages.append(choice.message)
+            # 将数据永久保存下来，方便以后用来训练
+            jsonl_append_json(
+                    dirname=config.DIRECTORY_HISTORY,
+                    channel_name=self.channel_name,
+                    new_item=post_messages)
+
             return response
         except ConnectionError as ce:
             return "无法连接到ChatGPT API。"
