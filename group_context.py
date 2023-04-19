@@ -137,8 +137,11 @@ class GroupContext:
                     'content': self.system
                 }] + post_messages
 
-            response = openai.ChatCompletion.create(model=self.gpt_model,
-                                                    messages=post_messages)
+            response = openai.ChatCompletion.create(
+                    model=self.gpt_model,
+                    messages=post_messages,
+                    user=f'{self.message.author.id}'
+            )
 
             for choice in response.choices:
                 post_messages.append(choice.message)
