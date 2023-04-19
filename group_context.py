@@ -274,9 +274,12 @@ class GroupContext:
             # 不是处理大文本
             if self.document != '':
                 self.history.append(
-                        { "role": 'user', "content": self.document + '\n' + self.content, 'name': 'Frank abababab', })
+                        {
+                            "role": 'user', "content": self.document + '\n' + self.content,
+                            'name': str(self.message.author.id)
+                        })
             else:
-                self.history.append({ "role": 'user', "content": self.content, 'name': 'Frank abababab', })
+                self.history.append({ "role": 'user', "content": self.content, 'name': str(self.message.author.id) })
 
             async with self.message.channel.typing():
                 response = await self.get_openai_chat_completion(history=self.history)
@@ -348,12 +351,13 @@ class GroupContext:
                 if summary != '':
                     post_history = [{
                         'role'   : 'system',
-                        'content': summary
+                        'content': summary,
                     }]
 
                 post_history += [{
                     'role'   : 'user',
                     'content': line + '\n' + self.content,
+                    'name'   : str(self.message.author.id)
                 }]
 
                 async with self.message.channel.typing():
