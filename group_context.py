@@ -328,6 +328,10 @@ class GroupContext:
                     continue
                 lines.append(line)
 
+            if len(lines) == 0:
+                await self.send_message('大文本内容不能为空')
+                return
+
             for line in lines:
                 post_history = self.history
 
