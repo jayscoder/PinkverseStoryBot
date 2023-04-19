@@ -369,7 +369,9 @@ class GroupContext:
                     post_history.append(choice.message)
 
                 # 总结一下
-                response = await self.get_openai_chat_completion(history=post_history + [{'role': 'user', 'content': SUMMARY_CONTENT}])
+                async with self.message.channel.typing():
+                    response = await self.get_openai_chat_completion(history=post_history + [{'role': 'user', 'content': SUMMARY_CONTENT}])
+
                 if isinstance(response, str):
                     await self.send_message(response)
                     break
