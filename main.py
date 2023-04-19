@@ -4,6 +4,7 @@ from utils import *
 from group_context import GroupContext
 from dm_context import DMContext
 
+
 # 定义bot登陆事件
 @bot.event
 async def on_ready():
@@ -20,6 +21,7 @@ async def on_ready():
 async def on_message(message: discord.Message):
     if isinstance(message.channel, discord.DMChannel):
         # 私信
+        print(f'{message.author.display_name}')
         await DMContext(message).on_message()
     else:
         # 群聊
