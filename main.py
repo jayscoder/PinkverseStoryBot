@@ -55,9 +55,7 @@ async def command_temperature(interaction: discord.interactions.Interaction):
                            in all_temperature]
 
     temperature_select = discord.ui.Select(
-            placeholder=f'''**选择temperature**
-            What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
-            We generally recommend altering this or top_p but not both.''',
+            placeholder=f'''**选择temperature**''',
             options=temperature_options,
             custom_id='temperature'
     )
@@ -79,7 +77,9 @@ async def command_temperature(interaction: discord.interactions.Interaction):
     view.add_item(temperature_select)
 
     await interaction.response.send_message(
-            'ChatGPT 设置temperature',
+            f'''**选择temperature**
+            What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
+            We generally recommend altering this or top_p but not both.''',
             view=view,
     )
 
