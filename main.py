@@ -36,6 +36,8 @@ async def command_settings(interaction: discord.interactions.Interaction):
     # user_id = interaction.user.id
     channel_id = interaction.channel.id
     setting = get_channel_setting(channel_id=channel_id)
+    view = discord.ui.View()
+
     # 获取当前的配置
     all_temperature = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8,
                        1.9,
@@ -48,7 +50,6 @@ async def command_settings(interaction: discord.interactions.Interaction):
             options=temperature_options,
             custom_id='temperature'
     )
-
     async def temperature_select_callback(inter: discord.Interaction):
         # TODO 获取用户选择的value
         selected_value = float(inter.data['values'][0])
@@ -63,9 +64,11 @@ async def command_settings(interaction: discord.interactions.Interaction):
 
     temperature_select.callback = temperature_select_callback
 
+    view.add_item(temperature_select)
+
     await interaction.response.send_message(
             'ChatGPT 设置',
-            components=[temperature_select],
+            view = view,
     )
 
     # 创建一个 select 交互式消息组件来让用户选择设置
