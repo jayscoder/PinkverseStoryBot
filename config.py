@@ -51,7 +51,8 @@ DIRECTORY_CONTEXT = 'data/context'
 DIRECTORY_HISTORY = 'data/history'
 DIRECTORY_OUTPUT = 'data/output'
 
-SUMMARY_CONTENT = '请帮我将目前给你的上下文梳理成简短的几句话'
+# SUMMARY_CONTENT = '请帮我将目前给你的上下文梳理成简短的几句话'
+SUMMARY_CONTENT = '总结一下上下文'
 
 # 聊天命令
 class Command(constantly.NamedConstant):

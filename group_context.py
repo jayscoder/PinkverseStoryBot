@@ -277,15 +277,17 @@ class GroupContext:
             elif len(response.choices) == 0:
                 await self.send_message("ChatGPT API没有返回有效的响应。")
             else:
-                if is_summary:
-                    # 归纳整理
-                    self.history = []
+
 
                 response_content = extract_openai_chat_response_content(response)
 
                 if not self.channel_mode & ChannelMode.NO_HISTORY:
                     for choice in response.choices:
                         self.history.append(choice.message)
+
+                if is_summary:
+                    # 归纳整理
+                    self.history = [{'role': 'system', 'content': response_content}]
 
                 completion_tokens = response['usage']['completion_tokens']
                 prompt_tokens = response['usage']['prompt_tokens']
@@ -305,45 +307,69 @@ class GroupContext:
                 return
 
             # 处理大文本（大文本内容在document里）（本次处理不会放到context历史里，但是会考虑上下文）
-            temp_memory_history = []
+            completion_tokens = 0
+            prompt_tokens = 0
+            total_tokens = 0
+            current_model = ''
+            summary = ''
 
             for line in self.document.splitlines():
                 line = line.strip()
                 if line == '':
                     continue
 
-                line_item = {
+                post_history = self.history
+
+                if summary != '':
+                    post_history = [{
+                        'role'   : 'system',
+                        'content': summary
+                    }]
+
+                post_history += [{
                     'role'   : 'user',
                     'content': line + '\n' + self.content
-                }
-                completion_tokens = 0
-                prompt_tokens = 0
-                total_tokens = 0
-                current_model = ''
+                }]
 
                 async with self.message.channel.typing():
                     response = await self.get_openai_chat_completion(
-                        history=self.history + temp_memory_history + [line_item])
+                        history= post_history)
+
                 if isinstance(response, str):
                     await self.send_message(response)
                     break
                 elif len(response.choices) == 0:
                     await self.send_message("ChatGPT API没有返回有效的响应。")
                     break
-                else:
-                    response_content = extract_openai_chat_response_content(response)
 
-                    completion_tokens += response['usage']['completion_tokens']
-                    prompt_tokens += response['usage']['prompt_tokens']
-                    total_tokens += response['usage']['total_tokens']
-                    current_model = response['model']
-                    await self.send_message(response_content)
 
-                    temp_memory_history = [{ 'role': 'system', 'content': line }]
+                response_content = extract_openai_chat_response_content(response)
+                await self.send_message(response_content)
+                completion_tokens += response['usage']['completion_tokens']
+                prompt_tokens += response['usage']['prompt_tokens']
+                total_tokens += response['usage']['total_tokens']
+                current_model = response['model']
 
-                tokens_content = f'''
-                    > tokens: {completion_tokens} + {prompt_tokens} = {total_tokens}
-                    > model: {current_model}
-                    > GPT-3.5: {total_tokens * GPT_3_5_TOKEN_PRICE}
-                    > GPT-4: ¥{total_tokens * GPT_4_TOKEN_PRICE}'''
-                await self.send_message(tokens_content)
+                for choice in response.choices:
+                    post_history.append(choice.message)
+
+                # 总结一下
+                response = await self.get_openai_chat_completion(history=post_history + [{'role': 'user', 'content': SUMMARY_CONTENT}])
+                if isinstance(response, str):
+                    await self.send_message(response)
+                    break
+                elif len(response.choices) == 0:
+                    await self.send_message("ChatGPT API没有返回有效的响应。")
+                    break
+                summary = extract_openai_chat_response_content(response)
+                completion_tokens += response['usage']['completion_tokens']
+                prompt_tokens += response['usage']['prompt_tokens']
+                total_tokens += response['usage']['total_tokens']
+                current_model = response['model']
+
+            tokens_content = f'''
+                > tokens: {completion_tokens} + {prompt_tokens} = {total_tokens}
+                > model: {current_model}
+                > GPT-3.5: {total_tokens * GPT_3_5_TOKEN_PRICE}
+                > GPT-4: ¥{total_tokens * GPT_4_TOKEN_PRICE}'''
+            await self.send_message(tokens_content)
