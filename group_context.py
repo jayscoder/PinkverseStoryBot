@@ -313,11 +313,26 @@ class GroupContext:
             current_model = ''
             summary = ''
 
+            lines = []
+
             for line in self.document.splitlines():
                 line = line.strip()
                 if line == '':
                     continue
+                if len(lines) == 0:
+                    lines.append(line)
+                    continue
+                if len(lines[-1] + line) < 1000:
+                    # 同时最多只处理1000个字符
+                    lines[-1] += line
+                    continue
+                lines.append(line)
 
+            if len(lines) == 0:
+                await self.send_message('大文本内容不能为空')
+                return
+
+            for line in lines:
                 post_history = self.history
 
                 if summary != '':
@@ -361,6 +376,7 @@ class GroupContext:
                 elif len(response.choices) == 0:
                     await self.send_message("ChatGPT API没有返回有效的响应。")
                     break
+
                 summary = extract_openai_chat_response_content(response)
                 completion_tokens += response['usage']['completion_tokens']
                 prompt_tokens += response['usage']['prompt_tokens']
