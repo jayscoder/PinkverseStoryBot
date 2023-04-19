@@ -353,7 +353,7 @@ class GroupContext:
                 post_history += [{
                     'role'   : 'user',
                     'content': line + '\n' + self.content,
-                    'name': self.message.author.name,
+                    'name'   : 'Frank abababab',
                 }]
 
                 async with self.message.channel.typing():
