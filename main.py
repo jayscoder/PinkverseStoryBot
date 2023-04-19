@@ -8,6 +8,7 @@ from dm_context import DMContext
 # 定义bot登陆事件
 @bot.event
 async def on_ready():
+    await tree.sync()
     print('Logged in as {0.user}'.format(bot))
     for guild in bot.guilds:
         for channel in guild.text_channels:
@@ -27,6 +28,11 @@ async def on_message(message: discord.Message):
         # 群聊
         print(f'{message.channel.name}: {message.content}')
         await GroupContext(message).on_message()
+
+@tree.command(name="setting", description="设置GPT bot")
+async def first_command(interaction):
+    print('interaction', type(interaction))
+    await interaction.response.send_message("Hello!")
 
 
 if __name__ == '__main__':
