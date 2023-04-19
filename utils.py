@@ -1,5 +1,8 @@
 import json
 from config import *
+from datetime import datetime
+import time
+
 
 def makedirs(directory: str):
     if not os.path.exists(directory):
@@ -17,3 +20,9 @@ def extract_openai_chat_response_content(response):
     response_content = '\n\n'.join(
             [choice.message.content or 'None' for choice in response.choices])
     return response_content
+
+
+def time_id() -> str:
+    current_timestamp = time.time()
+    formatted_time = datetime.fromtimestamp(current_timestamp).strftime('%Y%m%d%H%M%S')
+    return formatted_time

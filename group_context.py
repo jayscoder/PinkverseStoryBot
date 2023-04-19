@@ -1,7 +1,10 @@
 import json
 
+import discord
+
 import config
 from utils import *
+import time
 
 
 # 群聊上下文
@@ -278,7 +281,6 @@ class GroupContext:
                 await self.send_message("ChatGPT API没有返回有效的响应。")
             else:
 
-
                 response_content = extract_openai_chat_response_content(response)
 
                 if not self.channel_mode & ChannelMode.NO_HISTORY:
@@ -287,7 +289,7 @@ class GroupContext:
 
                 if is_summary:
                     # 归纳整理
-                    self.history = [{'role': 'system', 'content': response_content}]
+                    self.history = [{ 'role': 'system', 'content': response_content }]
 
                 completion_tokens = response['usage']['completion_tokens']
                 prompt_tokens = response['usage']['prompt_tokens']
@@ -332,6 +334,8 @@ class GroupContext:
                 await self.send_message('大文本内容不能为空')
                 return
 
+            results = []
+
             for line in lines:
                 post_history = self.history
 
@@ -348,7 +352,7 @@ class GroupContext:
 
                 async with self.message.channel.typing():
                     response = await self.get_openai_chat_completion(
-                        history= post_history)
+                            history=post_history)
 
                 if isinstance(response, str):
                     await self.send_message(response)
@@ -357,8 +361,8 @@ class GroupContext:
                     await self.send_message("ChatGPT API没有返回有效的响应。")
                     break
 
-
                 response_content = extract_openai_chat_response_content(response)
+                results.append(response_content)
                 await self.send_message(response_content)
                 completion_tokens += response['usage']['completion_tokens']
                 prompt_tokens += response['usage']['prompt_tokens']
@@ -369,7 +373,10 @@ class GroupContext:
                     post_history.append(choice.message)
 
                 # 总结一下
-                response = await self.get_openai_chat_completion(history=post_history + [{'role': 'user', 'content': SUMMARY_CONTENT}])
+                async with self.message.channel.typing():
+                    response = await self.get_openai_chat_completion(
+                            history=post_history + [{ 'role': 'user', 'content': SUMMARY_CONTENT }])
+
                 if isinstance(response, str):
                     await self.send_message(response)
                     break
@@ -383,9 +390,17 @@ class GroupContext:
                 total_tokens += response['usage']['total_tokens']
                 current_model = response['model']
 
+            dirname = os.path.join(DIRECTORY_OUTPUT, self.channel_name)
+            makedirs(dirname)
+            filepath = os.path.join(dirname, time_id() + '.txt')
+            with open(filepath, 'w', encoding='utf-8') as f:
+                f.write('\n'.join(results))
+
             tokens_content = f'''
-                > tokens: {completion_tokens} + {prompt_tokens} = {total_tokens}
-                > model: {current_model}
-                > GPT-3.5: {total_tokens * GPT_3_5_TOKEN_PRICE}
-                > GPT-4: ¥{total_tokens * GPT_4_TOKEN_PRICE}'''
-            await self.send_message(tokens_content)
+> tokens: {completion_tokens} + {prompt_tokens} = {total_tokens}
+> model: {current_model}
+> GPT-3.5: {total_tokens * GPT_3_5_TOKEN_PRICE}
+> GPT-4: ¥{total_tokens * GPT_4_TOKEN_PRICE}
+>
+> {summary}'''
+            await self.message.channel.send(tokens_content, file=discord.File(filepath))
