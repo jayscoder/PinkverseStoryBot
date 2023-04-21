@@ -149,30 +149,28 @@ async def discord_send_message(source: Union[int, discord.Interaction],
 
 
 # openai聊天模型
-def get_openai_chat_completion(channel_name: str, history: list, system: str, gpt_model: str, temperature: float):
+def get_openai_chat_completion(channel_name: str, history: list, system: str,
+                               gpt_model: str, temperature: float):
     try:
         # clone
         post_messages = list(history)
         if system != '':
             post_messages = [{
-                'role'   : 'system',
+                'role': 'system',
                 'content': system
             }] + post_messages
-
-        response = openai.ChatCompletion.create(
-                model=gpt_model,
-                messages=post_messages,
-                temperature=temperature
-        )
+        print(f'gpt_model={gpt_model}', post_messages)
+        response = openai.ChatCompletion.create(model=gpt_model,
+                                                messages=post_messages,
+                                                temperature=temperature)
 
         for choice in response.choices:
             post_messages.append(choice.message)
 
         # 将数据永久保存下来，方便以后用来训练
-        jsonl_append_json(
-                dirname=DIRECTORY_HISTORY,
-                channel_name=channel_name,
-                new_item=post_messages)
+        jsonl_append_json(dirname=DIRECTORY_HISTORY,
+                          channel_name=channel_name,
+                          new_item=post_messages)
 
         return response
     except ConnectionError as ce:
