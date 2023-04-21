@@ -232,7 +232,7 @@ class BotThinking:
         dots_str = '.' * (self.dots + 1)
         content = f'\n> bot思考中️{dots_str}: {self.content} ({round((now - self.start_time))}s)'
         if self.message is None:
-            self.message = discord_send_message(source=self.channel_id, content=content)
+            self.message = await discord_send_message(source=self.channel_id, content=content)
         else:
             await self.message.edit(content=content)
 
