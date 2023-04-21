@@ -5,16 +5,6 @@ from group_context import GroupContext
 from dm_context import DMContext
 
 
-# 定义bot登陆事件
-@bot.event
-async def on_ready():
-    await tree.sync()
-    print('Logged in as {0.user}'.format(bot))
-    for guild in bot.guilds:
-        for channel in guild.text_channels:
-            # if channel.name == '欢迎光临！':
-            # await channel.send('我上线啦')
-            print(channel)
 
 
 # 定义bot接收到消息的事件
@@ -162,6 +152,18 @@ We generally recommend altering this or top_p but not both.''',
 # else:
 #     # 如果选择了未知的选项，发送一条提醒
 #     await inter.response.send_message('未知的选项', ephemeral=True)
+
+# 定义bot登陆事件
+@bot.event
+async def on_ready():
+    await tree.sync()
+    print('Logged in as {0.user}'.format(bot))
+    for guild in bot.guilds:
+        for channel in guild.text_channels:
+            # if channel.name == '欢迎光临！':
+            # await channel.send('我上线啦')
+            print(channel)
+
 
 if __name__ == '__main__':
     bot.run(os.getenv("DISCORD_STORY_BOT_TOKEN"))
