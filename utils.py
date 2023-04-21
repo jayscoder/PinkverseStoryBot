@@ -160,7 +160,13 @@ def get_openai_image(prompt: str, width: int, height: int):
 def get_openai_chat_completion(channel_name: str, history: list, system: str,
                                gpt_model: str, temperature: float):
     switch_openai_key()
+
     try:
+        async def call():
+            return openai.ChatCompletion.create(model=gpt_model,
+                                                messages=post_messages,
+                                                temperature=temperature)
+
         # clone
         post_messages = list(history)
         if system != '':
@@ -169,9 +175,7 @@ def get_openai_chat_completion(channel_name: str, history: list, system: str,
                 'content': system
             }] + post_messages
         print(f'gpt_model={gpt_model}', post_messages)
-        response = openai.ChatCompletion.create(model=gpt_model,
-                                                messages=post_messages,
-                                                temperature=temperature)
+        response = asyncio.run_coroutine_threadsafe(call(), OPENAI_API_LOOPS[openai_api_key_index]).result()
 
         for choice in response.choices:
             post_messages.append(choice.message)
@@ -239,7 +243,7 @@ class BotThinking:
     async def __aenter__(self) -> None:
         print('BotThinkingEnter', self.content)
         self.start_time = time.time()
-        self.task: asyncio.Task[None] = asyncio.create_task(self.do_thinking())
+        self.task = asyncio.run_coroutine_threadsafe(self.do_thinking(), thinking_loop)
         self.task.add_done_callback(_loading_done_callback)
 
     async def __aexit__(

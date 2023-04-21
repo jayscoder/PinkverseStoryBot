@@ -5,6 +5,7 @@ import constantly
 from enum import Flag, auto
 import re
 from discord import app_commands
+from threads import *
 
 OPENAI_API_KEYS = [
     os.getenv("OPENAI_API_KEY0"),
@@ -14,8 +15,17 @@ OPENAI_API_KEYS = [
     os.getenv("OPENAI_API_KEY4")
 ]
 
+OPENAI_API_LOOPS = [
+    new_thread_loop(),
+    new_thread_loop(),
+    new_thread_loop(),
+    new_thread_loop(),
+    new_thread_loop(),
+]
+
 openai_api_key_index = 0
 openai.api_key = OPENAI_API_KEYS[openai_api_key_index]
+thinking_loop = new_thread_loop()
 
 
 def switch_openai_key():
