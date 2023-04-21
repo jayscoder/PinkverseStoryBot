@@ -5,8 +5,6 @@ from group_context import GroupContext
 from dm_context import DMContext
 
 
-
-
 # 定义bot接收到消息的事件
 @bot.event
 async def on_message(message: discord.Message):
@@ -44,17 +42,10 @@ async def command_clear(interaction: discord.interactions.Interaction):
 
 @tree.command(name="history", description="获取历史")
 async def command_history(interaction: discord.interactions.Interaction):
-    print('command_history_data', interaction.data)
+    print('command_history_message', interaction.message)
     channel_name = interaction.channel.name
-    channel_id = interaction.channel.id
     history = get_channel_history(channel_name=channel_name)
-    if len(history) > 0:
-        await discord_channel_send_message(channel_id=channel_id, content=get_channel_history_content(history))
-    else:
-        await discord_channel_send_message(channel_id=channel_id, content='【空】')
-
-
-
+    await discord_send_message(source=interaction, content=get_channel_history_content(history))
 
 
 @tree.command(name="temperature", description="设置GPT bot temperature")

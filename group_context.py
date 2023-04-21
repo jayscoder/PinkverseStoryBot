@@ -64,7 +64,7 @@ class GroupContext:
         return get_channel_history_content(history=self.history)
 
     async def send_message(self, content: str):
-        await discord_channel_send_message(channel_id=self.channel_id, content=content)
+        await discord_send_message(source=self.channel_id, content=content)
 
     # 获取当前历史token
     def history_tokens(self):
