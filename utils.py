@@ -243,8 +243,8 @@ class BotThinking:
             traceback,
     ) -> None:
         self.task.cancel()
-        if self.message is not None:
-            await self.message.delete()
+        # if self.message is not None:
+        #     await self.message.delete()
 
 
 def get_brief(content: str):
