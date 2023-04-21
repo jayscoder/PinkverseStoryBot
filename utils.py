@@ -218,10 +218,10 @@ class BotThinking:
         self.loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()  # TODO
         self.dots = 0
         self.channel_id = channel_id
-        self.content = content
+        self.content = get_brief(content)
         self.message = None
 
-    async def do_loading(self) -> None:
+    async def do_thinking(self) -> None:
         while True:
             await self.send_thinking()
             await asyncio.sleep(1)
@@ -230,15 +230,16 @@ class BotThinking:
         now = time.time()
         self.dots = (self.dots + 1) % 6
         dots_str = '.' * (self.dots + 1)
-        content = f'\n> bot思考中️{dots_str}: {get_brief(content=self.content)} ({round((now - self.start_time))}s)'
+        content = f'\n> bot思考中️{dots_str}: {self.content} ({round((now - self.start_time))}s)'
         if self.message is None:
             self.message = discord_send_message(source=self.channel_id, content=content)
         else:
             await self.message.edit(content=content)
 
     async def __aenter__(self) -> None:
+        print('BotThinkingEnter', self.content)
         self.start_time = time.time()
-        self.task: asyncio.Task[None] = self.loop.create_task(self.do_loading())
+        self.task: asyncio.Task[None] = self.loop.create_task(self.do_thinking())
         self.task.add_done_callback(_loading_done_callback)
 
     async def __aexit__(
@@ -247,6 +248,7 @@ class BotThinking:
             exc,
             traceback,
     ) -> None:
+        print('BotThinkingExit', self.content)
         self.task.cancel()
         if self.message is not None:
             await self.message.delete()
