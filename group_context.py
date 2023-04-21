@@ -172,7 +172,7 @@ class GroupContext:
             else:
                 self.history.append({ "role": 'user', "content": self.content, 'name': str(self.message.author.id) })
             # async with self.message.channel.typing():
-            async with BotThinking(message=self.message):
+            async with BotThinking(channel_id=self.channel_id, content=self.content):
                 response = await self.get_openai_chat_completion(history=self.history)
 
             if isinstance(response, str):
