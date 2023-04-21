@@ -245,7 +245,7 @@ class BotThinking:
             traceback,
     ) -> None:
         self.task.cancel()
-        self.message.edit(content=self.init_content)
+        await self.message.edit(content=self.init_content)
         # if self.message is not None:
         #     await self.message.delete()
 
