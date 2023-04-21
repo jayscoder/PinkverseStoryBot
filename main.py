@@ -46,10 +46,25 @@ async def on_message_edit(before: discord.Message, after: discord.Message):
 @tree.command(name="clear", description="清空历史")
 async def command_clear(interaction: discord.interactions.Interaction):
     channel_name = interaction.channel.name
-    filepath = os.path.join(DIRECTORY_CONTEXT, f'{channel_name}.json')
+    filepath = get_channel_history_path(channel_name=channel_name)
     if os.path.exists(filepath):
         os.remove(filepath)
     await interaction.response.send_message('已清空历史')
+
+
+@tree.command(name="history", description="获取历史")
+async def command_history(interaction: discord.interactions.Interaction):
+    print('command_history_data', interaction.data)
+    channel_name = interaction.channel.name
+    channel_id = interaction.channel.id
+    history = get_channel_history(channel_name=channel_name)
+    if len(history) > 0:
+        await discord_channel_send_message(channel_id=channel_id, content=get_channel_history_content(history))
+    else:
+        await discord_channel_send_message(channel_id=channel_id, content='【空】')
+
+
+
 
 
 @tree.command(name="temperature", description="设置GPT bot temperature")

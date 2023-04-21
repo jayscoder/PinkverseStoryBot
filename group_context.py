@@ -14,6 +14,7 @@ class GroupContext:
         self.message = message
         self.content = message.content
         self.channel_name = message.channel.name
+        self.channel_id = message.channel.id
         self.file_path = f'./{DIRECTORY_CONTEXT}/{self.channel_name}.json'
         # 来自用户发的内容
         self.from_user = message.author != bot.user
@@ -52,74 +53,18 @@ class GroupContext:
     def load_history(self):
         if self.channel_mode & ChannelMode.NO_HISTORY:
             # 无历史
+            self.history = []
             return
-
-        if os.path.isfile(self.file_path):
-            with open(self.file_path, 'r') as file:
-                self.history = json.load(file)
-                if not isinstance(self.history, list):
-                    # 历史数据不是列表
-                    self.history = []
-                    self.dump_history()
-        else:
-            print(f'load_context:{self.channel_name} 文件不存在')
-            self.history = []  # 返回一个空列表
-            self.dump_history()
+        self.history = get_channel_history(channel_name=self.channel_name)
 
     def dump_history(self):
-        makedirs(DIRECTORY_CONTEXT)
-        with open(self.file_path, 'w', encoding='utf-8') as file:
-            json.dump(self.history, file, ensure_ascii=False, indent=4)
+        save_channel_history(channel_name=self.channel_name, history=self.history)
 
     def history_content(self):
-        return '\n'.join(
-                [f"{msg['role']}: {msg['content']}" for msg in self.history])
+        return get_channel_history_content(history=self.history)
 
     async def send_message(self, content: str):
-        if len(content) <= MAX_DISCORD_TOKENS:
-            # 如果消息长度小于等于 2000，直接发送
-            if content == '':
-                content = '【空】'
-            await self.message.channel.send(content)
-        else:
-            # 如果消息长度大于 2000，分割成多个小消息发送
-            chunks = [
-                content[i:i + MAX_DISCORD_TOKENS]
-                for i in range(0, len(content), MAX_DISCORD_TOKENS)
-            ]
-            for chunk in chunks:
-                await self.message.channel.send(chunk)
-
-    # 获取成员列表
-    async def get_member_list(self):
-        member_list = []
-        async for member in self.message.guild.fetch_members(limit=None):
-            member_list.append(member)
-        member_nicknames = [
-            member.nick or member.name for member in member_list
-        ]
-        return member_nicknames
-
-    # # 截断历史，返回值：是否截断了
-    # def cut_off_history(self, max_tokens) -> bool:
-    #     # 只保留最近N条消息，这N条消息的字符总数不能超过MAX_TOKENS
-    #     max_tokens -= len(self.system)  # 要预留出system的空间
-    #     temp_history = []
-    #     temp_history_tokens = 0
-    #     is_cut_off = False
-    #
-    #     # 从最后一条消息开始遍历，只保留2000个字符
-    #     for i in range(len(self.history) - 1, -1, -1):
-    #         item_history = self.history[i]
-    #         item_history['content'] = item_history['content'][:max_tokens]
-    #         temp_history_tokens += len(item_history['content'])
-    #         if temp_history_tokens > max_tokens:
-    #             is_cut_off = True
-    #             break
-    #         temp_history.insert(0, item_history)
-    #     self.history = temp_history
-    #     self.dump_history()
-    #     return is_cut_off
+        await discord_channel_send_message(channel_id=self.channel_id, content=content)
 
     # 获取当前历史token
     def history_tokens(self):
@@ -131,7 +76,8 @@ class GroupContext:
     # openai聊天模型
     async def get_openai_chat_completion(self, history: list):
         try:
-            post_messages = history
+            # clone
+            post_messages = list(history)
             if self.system != '':
                 post_messages = [{
                     'role'   : 'system',
@@ -163,33 +109,12 @@ class GroupContext:
             print(e, self.system, self.history)
             return f"ChatGPT API请求失败: {e}"
 
-    async def get_openai_image(self, width: int, height: int):
-        try:
-            if width > 1024:
-                width = 1024
-            if height > 1024:
-                height = 1024
-            response = openai.Image.create(
-                    prompt=f'{self.content}',
-                    n=1,
-                    size=f"{width}x{height}"
-            )
-            print(response)
-            return response
-        except ConnectionError as ce:
-            return "无法连接到ChatGPT API。"
-        except TimeoutError as te:
-            return "ChatGPT API请求超时。"
-        except Exception as e:
-            print(e, self.system, self.history)
-            return f"ChatGPT API请求失败: {e}"
-
     # on_message事件
     async def on_message(self):
         if self.channel_mode == ChannelMode.GROUP:
             # 群模式下需要添加群成员列表
             self.system += '\n群成员列表:\n' + '\n'.join(await
-                                                         self.get_member_list())
+                                                         get_channel_member_list(channel_id=self.channel_id))
 
         # 帮助命令
         if Command.check_equal(self.content, command=Command.HELP):
@@ -216,7 +141,7 @@ class GroupContext:
 
         if Command.check_equal(self.content, Command.MEMBERS):
             # 显式获取所有的成员信息
-            member_list = await self.get_member_list()
+            member_list = await get_channel_member_list(channel_id=self.channel_id)
             await self.send_message('\n'.join(member_list))
             return
 
@@ -257,7 +182,7 @@ class GroupContext:
         if Command.check_startswith(self.content, Command.IMAGINE):
             width, height, self.content = Command.parse_imagine(self.content)
             async with self.message.channel.typing():
-                response = await self.get_openai_image(width=width, height=height)
+                response = await get_openai_image(prompt=self.content, width=width, height=height)
             # 生成图片
             if isinstance(response, str):
                 await self.send_message(response)
