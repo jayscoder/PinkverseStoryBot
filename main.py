@@ -48,7 +48,7 @@ async def command_history(interaction: discord.Interaction):
     await discord_send_message(source=interaction, content=get_channel_history_content(history))
 
 
-@tree.command(name="ask", description="提出问题，不会考虑上下文，不会保存历史")
+@tree.command(name="ask", description="提出问题，不会考虑上下文/系统，不会保存到历史")
 async def command_ask(interaction: discord.Interaction, question: str):
     print('command_ask', question)
     setting = get_channel_setting(channel_id=interaction.channel.id)
