@@ -5,9 +5,9 @@ from group_context import GroupContext
 from dm_context import DMContext
 from discord import app_commands
 
-
 # 如何使用斜杠命令
 # https://qa.1r1g.com/sf/ask/5043065541/
+
 
 # 定义bot接收到消息的事件
 @bot.event
@@ -58,32 +58,40 @@ async def command_ask(interaction: discord.Interaction, question: str):
     setting = get_channel_setting(channel_id=interaction.channel.id)
     gpt_model = extract_channel_gpt_model(interaction.channel.name)
     response = get_openai_chat_completion(
-            channel_name=interaction.channel.name,
-            history=[{ 'role': 'user', 'content': question }],
-            system=interaction.channel.topic or '',
-            gpt_model=gpt_model,
-            temperature=setting['temperature'])
+        channel_name=interaction.channel.name,
+        history=[{
+            'role': 'user',
+            'content': question
+        }],
+        system=interaction.channel.topic or '',
+        gpt_model=gpt_model,
+        temperature=setting['temperature'])
     if isinstance(response, str):
         await discord_send_message(source=interaction, content=response)
     else:
         response_content = extract_openai_chat_response_content(response)
-        await discord_send_message(source=interaction, content=response_content)
+        await discord_send_message(source=interaction,
+                                   content=response_content)
 
 
 @tree.command(name="imagine", description="生成图片")
-@app_commands.choices(choices=[
+@app_commands.choices(size=[
     app_commands.Choice(name="1024", value=1024),
     app_commands.Choice(name="512", value=512),
     app_commands.Choice(name="256", value=256),
 ])
-async def command_imagine(interaction: discord.Interaction, prompt: str, size: int = 1024):
-    response = await get_openai_image(prompt=prompt, width=size, height=size)
+async def command_imagine(interaction: discord.Interaction,
+                          prompt: str,
+                          size: int = 1024):
+    response = get_openai_image(prompt=prompt, width=size, height=size)
     # 生成图片
     if isinstance(response, str):
         await discord_send_message(source=interaction, content=response)
     else:
-        response_content = '\n'.join([item['url'] for i, item in enumerate(response['data'])])
-        await discord_send_message(source=interaction, content=response_content)
+        response_content = '\n'.join(
+            [item['url'] for i, item in enumerate(response['data'])])
+        await discord_send_message(source=interaction,
+                                   content=response_content)
         return
 
 
