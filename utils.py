@@ -226,6 +226,7 @@ class BotThinking:
             await asyncio.sleep(1)
 
     async def send_thinking(self):
+        print('BotThinkingSend', self.content, self.message is None)
         now = time.time()
         self.dots = (self.dots + 1) % 6
         dots_str = '.' * (self.dots + 1)
