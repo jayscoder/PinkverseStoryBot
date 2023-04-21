@@ -9,6 +9,7 @@ python = "^3.8"
 discord = "^2.1.0"
 openai = "^0.27.0"
 constantly = "^15.1.0"
+PyYAML = "^6.0"
 
 [tool.poetry.dev-dependencies]
 

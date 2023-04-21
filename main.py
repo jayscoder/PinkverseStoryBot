@@ -45,7 +45,8 @@ async def command_history(interaction: discord.interactions.Interaction):
     print('command_history_message', interaction.message)
     channel_name = interaction.channel.name
     history = get_channel_history(channel_name=channel_name)
-    await discord_send_message(source=interaction, content=get_channel_history_content(history))
+    await discord_send_message(source=interaction,
+                               content=get_channel_history_content(history))
 
 
 @tree.command(name="temperature", description="设置GPT bot temperature")
@@ -57,17 +58,21 @@ async def command_temperature(interaction: discord.interactions.Interaction):
     view = discord.ui.View()
 
     # 获取当前的配置
-    all_temperature = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8,
-                       1.9,
-                       2]
-    temperature_options = [discord.SelectOption(label=f'{t}', value=f'{t}', default=setting['temperature'] == t) for t
-                           in all_temperature]
+    all_temperature = [
+        0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4,
+        1.5, 1.6, 1.7, 1.8, 1.9, 2
+    ]
+    temperature_options = [
+        discord.SelectOption(label=f'{t}',
+                             value=f'{t}',
+                             default=setting['temperature'] == t)
+        for t in all_temperature
+    ]
 
     temperature_select = discord.ui.Select(
-            placeholder=f'''**选择temperature**''',
-            options=temperature_options,
-            custom_id='temperature'
-    )
+        placeholder=f'''**选择temperature**''',
+        options=temperature_options,
+        custom_id='temperature')
 
     async def temperature_select_callback(inter: discord.Interaction):
         # TODO 获取用户选择的value
@@ -77,22 +82,23 @@ async def command_temperature(interaction: discord.interactions.Interaction):
         # 保存新的配置
         save_channel_setting(channel_id=channel_id, setting=setting)
         temperature_select.options = [
-            discord.SelectOption(label=f'{t}', value=f'{t}', default=setting['temperature'] == t) for t
-            in all_temperature]
+            discord.SelectOption(label=f'{t}',
+                                 value=f'{t}',
+                                 default=setting['temperature'] == t)
+            for t in all_temperature
+        ]
         await inter.response.edit_message(
-                content=f'ChatGPT temperature已更新为{selected_value}',
-                view=view
-        )
+            content=f'ChatGPT temperature已更新为{selected_value}', view=view)
 
     temperature_select.callback = temperature_select_callback
 
     view.add_item(temperature_select)
 
     await interaction.response.send_message(
-            f'''**选择temperature**
+        f'''**选择temperature**
 What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
 We generally recommend altering this or top_p but not both.''',
-            view=view,
+        view=view,
     )
 
     # 创建一个 select 交互式消息组件来让用户选择设置
@@ -143,6 +149,7 @@ We generally recommend altering this or top_p but not both.''',
 # else:
 #     # 如果选择了未知的选项，发送一条提醒
 #     await inter.response.send_message('未知的选项', ephemeral=True)
+
 
 # 定义bot登陆事件
 @bot.event
