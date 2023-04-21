@@ -215,7 +215,6 @@ def _loading_done_callback(fut: asyncio.Future) -> None:
 class BotThinking:
     def __init__(self, channel_id: int, content: str):
         self.start_time = 0
-        self.loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()  # TODO
         self.dots = 0
         self.channel_id = channel_id
         self.content = get_brief(content)
@@ -239,7 +238,7 @@ class BotThinking:
     async def __aenter__(self) -> None:
         print('BotThinkingEnter', self.content)
         self.start_time = time.time()
-        self.task: asyncio.Task[None] = self.loop.create_task(self.do_thinking())
+        self.task: asyncio.Task[None] = asyncio.create_task(self.do_thinking())
         self.task.add_done_callback(_loading_done_callback)
 
     async def __aexit__(
@@ -255,7 +254,7 @@ class BotThinking:
 
 
 def get_brief(content: str):
-    if len(content) > 10:
-        return content[:10] + '...'
+    if len(content) > 15:
+        return content[:15] + '...'
     else:
         return content
