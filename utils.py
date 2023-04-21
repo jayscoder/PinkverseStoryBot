@@ -1,7 +1,4 @@
 import json
-
-import discord
-
 from config import *
 from datetime import datetime
 import time
@@ -34,20 +31,20 @@ def jsonl_append_json(dirname: str, channel_name: str, new_item: list):
 
 def extract_openai_chat_response_content(response):
     response_content = '\n\n'.join(
-            [choice.message.content or 'None' for choice in response.choices])
+        [choice.message.content or 'None' for choice in response.choices])
     return response_content
 
 
 def time_id() -> str:
     current_timestamp = time.time()
     formatted_time = datetime.fromtimestamp(current_timestamp).strftime(
-            '%Y%m%d%H%M%S')
+        '%Y%m%d%H%M%S')
     return formatted_time
 
 
 def get_channel_setting(channel_id: int) -> dict:
     filename = get_channel_setting_path(channel_id=channel_id)
-    data = { }
+    data = {}
     if os.path.exists(filename):
         with open(filename, 'r', encoding='utf-8') as f:
             data = json.load(f)
@@ -72,8 +69,7 @@ def get_channel_context(channel_id: int) -> list:
             if not isinstance(history, list):
                 # 历史数据不是列表
                 history = []
-                save_channel_context(channel_id=channel_id,
-                                     history=history)
+                save_channel_context(channel_id=channel_id, history=history)
     return history
 
 
@@ -99,24 +95,6 @@ async def get_channel_member_list(channel_id: int):
     member_nicknames = [member.nick or member.name for member in member_list]
 
     return member_nicknames
-
-
-def get_openai_image(prompt: str, width: int, height: int):
-    try:
-        if width > 1024:
-            width = 1024
-        if height > 1024:
-            height = 1024
-        response = openai.Image.create(prompt=f'{prompt}',
-                                       n=1,
-                                       size=f"{width}x{height}")
-        return response
-    except ConnectionError as ce:
-        return "无法连接到ChatGPT API。"
-    except TimeoutError as te:
-        return "ChatGPT API请求超时。"
-    except Exception as e:
-        return f"ChatGPT API请求失败: {e}"
 
 
 def discord_split_contents(content: str) -> [str]:
@@ -148,9 +126,31 @@ async def discord_send_message(source: Union[int, discord.Interaction],
             await source.response.send_message(chunk, ephemeral=False)
 
 
+def get_openai_image(prompt: str, width: int, height: int):
+    switch_openai_key()
+    try:
+        if width > 1024:
+            width = 1024
+        if height > 1024:
+            height = 1024
+        response = openai.Image.create(prompt=f'{prompt}',
+                                       n=1,
+                                       size=f"{width}x{height}")
+        return response
+    except ConnectionError as ce:
+        return "无法连接到ChatGPT API。"
+    except TimeoutError as te:
+        return "ChatGPT API请求超时。"
+    except Exception as e:
+        return f"ChatGPT API请求失败: {e}"
+
+
 # openai聊天模型
+
+
 def get_openai_chat_completion(channel_name: str, history: list, system: str,
                                gpt_model: str, temperature: float):
+    switch_openai_key()
     try:
         # clone
         post_messages = list(history)

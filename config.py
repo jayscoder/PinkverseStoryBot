@@ -6,7 +6,24 @@ from enum import Flag, auto
 import re
 from discord import app_commands
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+OPENAI_API_KEYS = [
+    os.getenv("OPENAI_API_KEY0"),
+    os.getenv("OPENAI_API_KEY1"),
+    os.getenv("OPENAI_API_KEY2"),
+    os.getenv("OPENAI_API_KEY3"),
+    os.getenv("OPENAI_API_KEY4")
+]
+
+openai_api_key_index = 0
+openai.api_key = OPENAI_API_KEYS[openai_api_key_index]
+
+
+def switch_openai_key():
+    global openai_api_key_index
+    openai_api_key_index = (openai_api_key_index + 1) % len(OPENAI_API_KEYS)
+    openai.api_key = OPENAI_API_KEYS[openai_api_key_index]
+
+
 bot = discord.Client(
         intents=discord.Intents.all()
 )  # 指定了客户端对象需要接收所有的事件，包括一些敏感信息，例如用户列表、权限等等。需要注意的是，Discord在2022年4月7日之后，所有新创建的应用必须填写和审核 Intents 后才能使用它们。
@@ -45,7 +62,6 @@ available_model_ids = [model.id for model in available_models]
 GPT_4_TOKEN_PRICE = 45 * 6.88 / 1000000
 GPT_3_5_TOKEN_PRICE = 2 * 6.88 / 1000000
 
-
 DIRECTORY_DATA = 'data'
 DIRECTORY_AUDIO = 'data/audio'
 DIRECTORY_CONTEXT = 'data/context'
@@ -55,6 +71,7 @@ DIRECTORY_SETTING = 'data/setting'
 
 # SUMMARY_CONTENT = '请帮我将目前给你的上下文梳理成简短的几句话'
 SUMMARY_CONTENT = '总结一下上下文'
+
 
 # 聊天命令
 class Command(constantly.NamedConstant):
@@ -67,9 +84,9 @@ class Command(constantly.NamedConstant):
     CLEAR = 'clear'
     TOKEN = 'token'
     MEMBERS = 'members'
-    IMAGINE = 'imagine' # 生成图片命令
+    IMAGINE = 'imagine'  # 生成图片命令
     SPEAK = 'speak'
-    LONG = 'long' # 执行长文本处理（逐行处理分析（单行不能超过2000个字符），不包含过去的历史）
+    LONG = 'long'  # 执行长文本处理（逐行处理分析（单行不能超过2000个字符），不包含过去的历史）
 
     @staticmethod
     def check_equal(content: str, command: str):
