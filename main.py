@@ -5,6 +5,7 @@ from group_context import GroupContext
 from dm_context import DMContext
 from discord import app_commands
 
+
 # 如何使用斜杠命令
 # https://qa.1r1g.com/sf/ask/5043065541/
 
@@ -54,18 +55,21 @@ async def command_history(interaction: discord.Interaction):
 
 @tree.command(name="ask", description="提出问题，不会考虑上下文/系统，不会保存到历史")
 async def command_ask(interaction: discord.Interaction, question: str):
-    print('command_ask', question)
     setting = get_channel_setting(channel_id=interaction.channel.id)
     gpt_model = extract_channel_gpt_model(interaction.channel.name)
+    temperature = setting['temperature']
+    await discord_send_message(
+            source=interaction,
+            content=f'{question} --model={gpt_model} --temperature={temperature}')
     response = get_openai_chat_completion(
-        channel_name=interaction.channel.name,
-        history=[{
-            'role': 'user',
-            'content': question
-        }],
-        system=interaction.channel.topic or '',
-        gpt_model=gpt_model,
-        temperature=setting['temperature'])
+            channel_name=interaction.channel.name,
+            history=[{
+                'role'   : 'user',
+                'content': question
+            }],
+            system=interaction.channel.topic or '',
+            gpt_model=gpt_model,
+            temperature=temperature)
     if isinstance(response, str):
         await discord_send_message(source=interaction, content=response)
     else:
@@ -83,15 +87,17 @@ async def command_ask(interaction: discord.Interaction, question: str):
 async def command_imagine(interaction: discord.Interaction,
                           prompt: str,
                           size: int = 1024):
+    await discord_send_message(source=interaction, content=f'{prompt} --width={size} --height={size}')
     response = get_openai_image(prompt=prompt, width=size, height=size)
-    # 生成图片
+
+    # 生成图片（响应时间太久了就无法发送消息了）
     if isinstance(response, str):
-        await discord_send_message(source=interaction, content=response)
+        await discord_send_message(source=interaction.channel.id, content=response)
         return
     else:
         response_content = '\n'.join(
-            [item['url'] for i, item in enumerate(response['data'])])
-        await discord_send_message(source=interaction,
+                [item['url'] for i, item in enumerate(response['data'])])
+        await discord_send_message(source=interaction.channel.id,
                                    content=response_content)
         return
 
@@ -117,9 +123,9 @@ async def command_temperature(interaction: discord.Interaction):
     ]
 
     temperature_select = discord.ui.Select(
-        placeholder=f'''**选择temperature**''',
-        options=temperature_options,
-        custom_id='temperature')
+            placeholder=f'''**选择temperature**''',
+            options=temperature_options,
+            custom_id='temperature')
 
     async def temperature_select_callback(inter: discord.Interaction):
         # TODO 获取用户选择的value
@@ -135,17 +141,17 @@ async def command_temperature(interaction: discord.Interaction):
             for t in all_temperature
         ]
         await inter.response.edit_message(
-            content=f'ChatGPT temperature已更新为{selected_value}', view=view)
+                content=f'ChatGPT temperature已更新为{selected_value}', view=view)
 
     temperature_select.callback = temperature_select_callback
 
     view.add_item(temperature_select)
 
     await interaction.response.send_message(
-        f'''**选择temperature**
+            f'''**选择temperature**
 What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
 We generally recommend altering this or top_p but not both.''',
-        view=view,
+            view=view,
     )
 
     # 创建一个 select 交互式消息组件来让用户选择设置
