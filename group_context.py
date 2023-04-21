@@ -195,7 +195,7 @@ class GroupContext:
                 prompt_tokens = response['usage']['prompt_tokens']
                 total_tokens = response['usage']['total_tokens']
                 current_model = response['model']
-                if len(total_tokens) >= MAX_GPT_TOKENS / 2:
+                if total_tokens >= MAX_GPT_TOKENS / 2:
                     # 使用token数超过1000给出提示
                     response_content += f'''
         > tokens: {completion_tokens} + {prompt_tokens} = {total_tokens}
