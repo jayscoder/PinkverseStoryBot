@@ -51,10 +51,10 @@ class GroupContext:
             # 无历史
             self.history = []
             return
-        self.history = get_channel_history(channel_name=self.channel_name)
+        self.history = get_channel_history(channel_id=self.channel_id)
 
     def dump_history(self):
-        save_channel_history(channel_name=self.channel_name, history=self.history)
+        save_channel_history(channel_id=self.channel_id, history=self.history)
 
     def history_content(self):
         return get_channel_history_content(history=self.history)
