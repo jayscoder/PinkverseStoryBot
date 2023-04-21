@@ -147,7 +147,7 @@ class GroupContext:
         if Command.check_startswith(self.content, Command.IMAGINE):
             width, height, self.content = Command.parse_imagine(self.content)
             async with self.message.channel.typing():
-                response = await get_openai_image(prompt=self.content, width=width, height=height)
+                response = get_openai_image(prompt=self.content, width=width, height=height)
             # 生成图片
             if isinstance(response, str):
                 await self.send_message(response)
