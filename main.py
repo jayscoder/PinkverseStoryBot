@@ -60,7 +60,7 @@ async def command_ask(interaction: discord.Interaction, question: str):
     temperature = setting['temperature']
     await discord_send_message(
             source=interaction,
-            content=f'{question} --model={gpt_model} --temperature={temperature}')
+            content=f'> {question} --model={gpt_model} --temperature={temperature}')
     response = get_openai_chat_completion(
             channel_name=interaction.channel.name,
             history=[{
@@ -87,7 +87,7 @@ async def command_ask(interaction: discord.Interaction, question: str):
 async def command_imagine(interaction: discord.Interaction,
                           prompt: str,
                           size: int = 1024):
-    await discord_send_message(source=interaction, content=f'{prompt} --width={size} --height={size}')
+    await discord_send_message(source=interaction, content=f'> {prompt} --width={size} --height={size}')
     response = get_openai_image(prompt=prompt, width=size, height=size)
 
     # 生成图片（响应时间太久了就无法发送消息了）
