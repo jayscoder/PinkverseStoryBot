@@ -218,6 +218,8 @@ class BotThinking:
         self.start_time = 0
         self.loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()  # TODO
         self.dots = 0
+        self.init_content = self.message.content
+
 
     async def do_loading(self) -> None:
         while True:
@@ -228,7 +230,7 @@ class BotThinking:
         now = time.time()
         self.dots = (self.dots + 1) % 6
         dots_str = '.' * (self.dots + 1)
-        content = self.message.content + f'\n> bot思考中️{dots_str} ({round((now - self.start_time))}s)'
+        content = self.init_content + f'\n> bot思考中️{dots_str} ({round((now - self.start_time))}s)'
         await self.message.edit(content=content)
 
     async def __aenter__(self) -> None:
@@ -243,6 +245,7 @@ class BotThinking:
             traceback,
     ) -> None:
         self.task.cancel()
+        self.message.edit(content=self.init_content)
         # if self.message is not None:
         #     await self.message.delete()
 
