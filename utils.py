@@ -142,7 +142,8 @@ async def discord_send_message(source: Union[int, discord.Interaction], content:
             await bot.get_channel(source).send(chunk)
     elif isinstance(source, discord.Interaction):
         for chunk in chunks:
-            await source.response.send_message(chunk)
+            # ephemeral=True表示只有用户自己能看到这个消息
+            await source.response.send_message(chunk, ephemeral=False)
 
 
 # openai聊天模型

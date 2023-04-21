@@ -151,6 +151,7 @@ class GroupContext:
             # 生成图片
             if isinstance(response, str):
                 await self.send_message(response)
+                return
             else:
                 response_content = '\n'.join([item['url'] for i, item in enumerate(response['data'])])
                 await self.send_message(response_content)

@@ -80,6 +80,7 @@ async def command_imagine(interaction: discord.Interaction, prompt: str, size: i
     # 生成图片
     if isinstance(response, str):
         await discord_send_message(source=interaction, content=response)
+        return
     else:
         response_content = '\n'.join([item['url'] for i, item in enumerate(response['data'])])
         await discord_send_message(source=interaction, content=response_content)
