@@ -67,7 +67,7 @@ async def command_ask(interaction: discord.Interaction, question: str):
                 'role'   : 'user',
                 'content': question
             }],
-            system=interaction.channel.topic or '',
+            system='',
             gpt_model=gpt_model,
             temperature=temperature)
     if isinstance(response, str):
