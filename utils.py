@@ -1,9 +1,13 @@
 import json
+
+import discord.context_managers
+
 from config import *
 from datetime import datetime
 import time
 import yaml
 from typing import Union
+import asyncio
 
 
 def get_channel_context_path(channel_id: int) -> str:
@@ -113,17 +117,24 @@ def discord_split_contents(content: str) -> [str]:
         return chunks
 
 
-async def discord_send_message(source: Union[int, discord.Interaction],
-                               content: str):
+async def discord_send_message(source: Union[int, discord.Interaction, discord.TextChannel],
+                               content: str) -> discord.Message:
     chunks = discord_split_contents(content)
+    message = None
     if isinstance(source, int):
         # channel_id
         for chunk in chunks:
-            await bot.get_channel(source).send(chunk)
+            message = await bot.get_channel(source).send(chunk)
     elif isinstance(source, discord.Interaction):
         for chunk in chunks:
             # ephemeral=True表示只有用户自己能看到这个消息
-            await source.response.send_message(chunk, ephemeral=False)
+            message = await source.response.send_message(chunk, ephemeral=False)
+    else:
+        # channel
+        for chunk in chunks:
+            message = await source.send(chunk)
+
+    return message
 
 
 def get_openai_image(prompt: str, width: int, height: int):
@@ -146,8 +157,6 @@ def get_openai_image(prompt: str, width: int, height: int):
 
 
 # openai聊天模型
-
-
 def get_openai_chat_completion(channel_name: str, history: list, system: str,
                                gpt_model: str, temperature: float):
     switch_openai_key()
@@ -189,3 +198,57 @@ def extract_channel_gpt_model(channel_name: str) -> str:
             gpt_model = model_id
             break
     return gpt_model
+
+
+# def channel_typing(channel_id: int) -> discord.context_managers.Typing:
+#     channel = bot.get_channel(channel_id)
+#     return channel.typing()
+
+def _loading_done_callback(fut: asyncio.Future) -> None:
+    # just retrieve any exception and call it a day
+    try:
+        fut.exception()
+    except (asyncio.CancelledError, Exception):
+        pass
+
+
+class BotThinking:
+    def __init__(self, message: discord.Message):
+        self.message = message
+        self.start_time = 0
+        self.loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()  # TODO
+        self.dots = 0
+
+    async def do_loading(self) -> None:
+        while True:
+            await self.send_thinking()
+            await asyncio.sleep(1)
+
+    async def send_thinking(self):
+        now = time.time()
+        self.dots = (self.dots + 1) % 6
+        dots_str = '.' * (self.dots + 1)
+        content = self.message.content + f'\n> bot思考中️{dots_str} ({round((now - self.start_time))}s)'
+        await self.message.edit(content=content)
+
+    async def __aenter__(self) -> None:
+        self.start_time = time.time()
+        self.task: asyncio.Task[None] = self.loop.create_task(self.do_loading())
+        self.task.add_done_callback(_loading_done_callback)
+
+    async def __aexit__(
+            self,
+            exc_type,
+            exc,
+            traceback,
+    ) -> None:
+        self.task.cancel()
+        if self.message is not None:
+            await self.message.delete()
+
+
+def get_brief(content: str):
+    if len(content) > 10:
+        return content[:10] + '...'
+    else:
+        return content

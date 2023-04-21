@@ -59,15 +59,16 @@ async def command_ask(interaction: discord.Interaction, question: str):
     await discord_send_message(
             source=interaction,
             content=f'> {question} --model={gpt_model} --temperature={temperature}')
-    response = get_openai_chat_completion(
-            channel_name=interaction.channel.name,
-            history=[{
-                'role'   : 'user',
-                'content': question
-            }],
-            system='',
-            gpt_model=gpt_model,
-            temperature=temperature)
+    async with bot.get_channel(interaction.channel.id).typing():
+        response = get_openai_chat_completion(
+                channel_name=interaction.channel.name,
+                history=[{
+                    'role'   : 'user',
+                    'content': question
+                }],
+                system='',
+                gpt_model=gpt_model,
+                temperature=temperature)
     if isinstance(response, str):
         await discord_send_message(source=interaction.channel.id, content=response)
     else:
