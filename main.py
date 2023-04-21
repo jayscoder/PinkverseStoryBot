@@ -55,7 +55,7 @@ async def command_ask(interaction: discord.Interaction, question: str):
     gpt_model = extract_channel_gpt_model(interaction.channel.name)
     response = get_openai_chat_completion(
             channel_name=interaction.channel.name,
-            history=[],
+            history=[{'role': 'user', 'content': question}],
             system=interaction.channel.topic or '',
             gpt_model=gpt_model,
             temperature=setting['temperature'])
