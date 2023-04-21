@@ -3,7 +3,7 @@ from config import *
 from utils import *
 from group_context import GroupContext
 from dm_context import DMContext
-
+from discord import app_commands
 
 # 定义bot接收到消息的事件
 @bot.event
@@ -32,25 +32,29 @@ async def on_message_edit(before: discord.Message, after: discord.Message):
 
 
 @tree.command(name="clear", description="清空历史")
-async def command_clear(interaction: discord.interactions.Interaction):
+async def command_clear(interaction: discord.Interaction):
     channel_name = interaction.channel.name
     filepath = get_channel_history_path(channel_name=channel_name)
     if os.path.exists(filepath):
         os.remove(filepath)
     await interaction.response.send_message('已清空历史')
 
-
 @tree.command(name="history", description="获取历史")
-async def command_history(interaction: discord.interactions.Interaction):
-    print('command_history_message', interaction.message)
+async def command_history(interaction: discord.Interaction):
     channel_name = interaction.channel.name
     history = get_channel_history(channel_name=channel_name)
     await discord_send_message(source=interaction,
                                content=get_channel_history_content(history))
 
 
+@tree.command(name="ask", description="提出问题，不会保存历史")
+async def command_ask(interaction: discord.Interaction, question: str):
+    print('command_ask', question)
+    await discord_send_message(source=interaction, content=question)
+
+
 @tree.command(name="temperature", description="设置GPT bot temperature")
-async def command_temperature(interaction: discord.interactions.Interaction):
+async def command_temperature(interaction: discord.Interaction):
     # TODO 展示一些按钮或输入框来让用户配置设置
     # user_id = interaction.user.id
     channel_id = interaction.channel.id
