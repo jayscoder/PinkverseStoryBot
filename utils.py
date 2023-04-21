@@ -1,9 +1,12 @@
 import json
+
+import discord
+
 from config import *
 from datetime import datetime
 import time
 import yaml
-
+from typing import Union
 
 def get_channel_history_path(channel_name: str) -> str:
     return f'./{DIRECTORY_CONTEXT}/{channel_name}.json'
@@ -113,20 +116,27 @@ def get_openai_image(prompt: str, width: int, height: int):
     except Exception as e:
         return f"ChatGPT API请求失败: {e}"
 
-
-async def discord_channel_send_message(channel_id: int, content: str):
-    channel = bot.get_channel(channel_id)
+async def discord_split_contents(content: str) -> [str]:
     if len(content) <= MAX_DISCORD_TOKENS:
         # 如果消息长度小于等于 2000，直接发送
         if content == '':
             content = '【空】'
 
-        await channel.send(content)
+        return [content]
     else:
         # 如果消息长度大于 2000，分割成多个小消息发送
         chunks = [
             content[i:i + MAX_DISCORD_TOKENS]
             for i in range(0, len(content), MAX_DISCORD_TOKENS)
         ]
+        return chunks
+
+async def discord_send_message(source: Union[int, discord.Interaction], content: str):
+    chunks = discord_split_contents(content)
+    if isinstance(source, int):
+        # channel_id
         for chunk in chunks:
-            await channel.send(chunk)
+            await bot.get_channel(source).send(chunk)
+    elif isinstance(source, discord.Interaction):
+        for chunk in chunks:
+            source.response.send_message(chunk)
