@@ -143,3 +143,48 @@ async def discord_send_message(source: Union[int, discord.Interaction], content:
     elif isinstance(source, discord.Interaction):
         for chunk in chunks:
             await source.response.send_message(chunk)
+
+
+# openai聊天模型
+def get_openai_chat_completion(channel_name: str, history: list, system: str, gpt_model: str, temperature: float):
+    try:
+        # clone
+        post_messages = list(history)
+        if system != '':
+            post_messages = [{
+                'role'   : 'system',
+                'content': system
+            }] + post_messages
+
+        response = openai.ChatCompletion.create(
+                model=gpt_model,
+                messages=post_messages,
+                temperature=temperature
+        )
+
+        for choice in response.choices:
+            post_messages.append(choice.message)
+
+        # 将数据永久保存下来，方便以后用来训练
+        jsonl_append_json(
+                dirname=DIRECTORY_HISTORY,
+                channel_name=channel_name,
+                new_item=post_messages)
+
+        return response
+    except ConnectionError as ce:
+        return "无法连接到ChatGPT API。"
+    except TimeoutError as te:
+        return "ChatGPT API请求超时。"
+    except Exception as e:
+        print(e, system, history)
+        return f"ChatGPT API请求失败: {e}"
+
+
+def extract_channel_gpt_model(channel_name: str) -> str:
+    gpt_model = DEFAULT_GPT_MODEL
+    for model_id in available_model_ids:
+        if model_id.replace(".", "-") in channel_name:
+            gpt_model = model_id
+            break
+    return gpt_model

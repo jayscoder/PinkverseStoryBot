@@ -31,11 +31,7 @@ class GroupContext:
             self.channel_mode |= ChannelMode.NO_HISTORY
 
         # 判断当前应该采用哪个gpt_model
-        self.gpt_model = DEFAULT_GPT_MODEL
-        for model_id in available_model_ids:
-            if model_id.replace(".", "-") in message.channel.name:
-                self.gpt_model = model_id
-                break
+        self.gpt_model = extract_channel_gpt_model(message.channel.name)
 
         # 加载历史数据
         self.history = []
@@ -75,39 +71,8 @@ class GroupContext:
 
     # openai聊天模型
     async def get_openai_chat_completion(self, history: list):
-        try:
-            # clone
-            post_messages = list(history)
-            if self.system != '':
-                post_messages = [{
-                    'role'   : 'system',
-                    'content': self.system
-                }] + post_messages
-
-            response = openai.ChatCompletion.create(
-                    model=self.gpt_model,
-                    messages=post_messages,
-                    user=f'{self.message.author.id}',
-                    temperature=self.setting['temperature']
-            )
-
-            for choice in response.choices:
-                post_messages.append(choice.message)
-
-            # 将数据永久保存下来，方便以后用来训练
-            jsonl_append_json(
-                    dirname=config.DIRECTORY_HISTORY,
-                    channel_name=self.channel_name,
-                    new_item=post_messages)
-
-            return response
-        except ConnectionError as ce:
-            return "无法连接到ChatGPT API。"
-        except TimeoutError as te:
-            return "ChatGPT API请求超时。"
-        except Exception as e:
-            print(e, self.system, self.history)
-            return f"ChatGPT API请求失败: {e}"
+        return get_openai_chat_completion(channel_name=self.channel_name, history=history, system=self.system,
+                                          gpt_model=self.gpt_model, temperature=self.setting['temperature'])
 
     # on_message事件
     async def on_message(self):

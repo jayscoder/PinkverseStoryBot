@@ -5,6 +5,7 @@ from group_context import GroupContext
 from dm_context import DMContext
 from discord import app_commands
 
+
 # 定义bot接收到消息的事件
 @bot.event
 async def on_message(message: discord.Message):
@@ -39,6 +40,7 @@ async def command_clear(interaction: discord.Interaction):
         os.remove(filepath)
     await interaction.response.send_message('已清空历史')
 
+
 @tree.command(name="history", description="获取历史")
 async def command_history(interaction: discord.Interaction):
     channel_name = interaction.channel.name
@@ -46,10 +48,22 @@ async def command_history(interaction: discord.Interaction):
     await discord_send_message(source=interaction, content=get_channel_history_content(history))
 
 
-@tree.command(name="ask", description="提出问题，不会保存历史")
+@tree.command(name="ask", description="提出问题，不会考虑上下文，不会保存历史")
 async def command_ask(interaction: discord.Interaction, question: str):
     print('command_ask', question)
-    await discord_send_message(source=interaction, content=question)
+    setting = get_channel_setting(channel_id=interaction.channel.id)
+    gpt_model = extract_channel_gpt_model(interaction.channel.name)
+    response = get_openai_chat_completion(
+            channel_name=interaction.channel.name,
+            history=[],
+            system=interaction.channel.topic or '',
+            gpt_model=gpt_model,
+            temperature=setting['temperature'])
+    if isinstance(response, str):
+        await discord_send_message(source=interaction, content=response)
+    else:
+        response_content = extract_openai_chat_response_content(response)
+        await discord_send_message(source=interaction, content=response_content)
 
 
 @tree.command(name="temperature", description="设置GPT bot temperature")
