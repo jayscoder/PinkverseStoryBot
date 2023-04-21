@@ -70,13 +70,13 @@ async def command_ask(interaction: discord.Interaction, question: str):
 
 
 @tree.command(name="imagine", description="生成图片")
-@app_commands.choices(choices=[
+@app_commands.choices(size=[
     app_commands.Choice(name="1024", value=1024),
     app_commands.Choice(name="512", value=512),
     app_commands.Choice(name="256", value=256),
 ])
 async def command_imagine(interaction: discord.Interaction, prompt: str, size: int = 1024):
-    response = await get_openai_image(prompt=prompt, width=size, height=size)
+    response = get_openai_image(prompt=prompt, width=size, height=size)
     # 生成图片
     if isinstance(response, str):
         await discord_send_message(source=interaction, content=response)
