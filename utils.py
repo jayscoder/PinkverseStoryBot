@@ -31,20 +31,20 @@ def jsonl_append_json(dirname: str, channel_name: str, new_item: list):
 
 def extract_openai_chat_response_content(response):
     response_content = '\n\n'.join(
-        [choice.message.content or 'None' for choice in response.choices])
+            [choice.message.content or 'None' for choice in response.choices])
     return response_content
 
 
 def time_id() -> str:
     current_timestamp = time.time()
     formatted_time = datetime.fromtimestamp(current_timestamp).strftime(
-        '%Y%m%d%H%M%S')
+            '%Y%m%d%H%M%S')
     return formatted_time
 
 
 def get_channel_setting(channel_id: int) -> dict:
     filename = get_channel_setting_path(channel_id=channel_id)
-    data = {}
+    data = { }
     if os.path.exists(filename):
         with open(filename, 'r', encoding='utf-8') as f:
             data = json.load(f)
@@ -156,7 +156,7 @@ def get_openai_chat_completion(channel_name: str, history: list, system: str,
         post_messages = list(history)
         if system != '':
             post_messages = [{
-                'role': 'system',
+                'role'   : 'system',
                 'content': system
             }] + post_messages
         print(f'gpt_model={gpt_model}', post_messages)

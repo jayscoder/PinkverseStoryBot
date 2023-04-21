@@ -195,12 +195,13 @@ class GroupContext:
                 prompt_tokens = response['usage']['prompt_tokens']
                 total_tokens = response['usage']['total_tokens']
                 current_model = response['model']
-
-                response_content += f'''
-    > tokens: {completion_tokens} + {prompt_tokens} = {total_tokens}
-    > model: {current_model}
-    > GPT-3.5: {total_tokens * GPT_3_5_TOKEN_PRICE}
-    > GPT-4: ¥{total_tokens * GPT_4_TOKEN_PRICE}'''
+                if len(total_tokens) >= MAX_GPT_TOKENS / 2:
+                    # 使用token数超过1000给出提示
+                    response_content += f'''
+        > tokens: {completion_tokens} + {prompt_tokens} = {total_tokens}
+        > model: {current_model}
+        > GPT-3.5: {total_tokens * GPT_3_5_TOKEN_PRICE}
+        > GPT-4: ¥{total_tokens * GPT_4_TOKEN_PRICE}'''
                 self.dump_history()
                 await self.send_message(response_content)
         else:
