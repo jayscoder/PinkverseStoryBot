@@ -38,7 +38,7 @@ async def on_message_edit(before: discord.Message, after: discord.Message):
 
 @tree.command(name="clear", description="清空历史")
 async def command_clear(interaction: discord.Interaction):
-    filepath = get_channel_history_path(channel_id=interaction.channel.id)
+    filepath = get_channel_context_path(channel_id=interaction.channel.id)
     if os.path.exists(filepath):
         os.remove(filepath)
     await interaction.response.send_message('已清空历史')
@@ -46,9 +46,9 @@ async def command_clear(interaction: discord.Interaction):
 
 @tree.command(name="history", description="获取历史")
 async def command_history(interaction: discord.Interaction):
-    history = get_channel_history(channel_id=interaction.channel.id)
+    history = get_channel_context(channel_id=interaction.channel.id)
     await discord_send_message(source=interaction,
-                               content=get_channel_history_content(history))
+                               content=convert_channel_history_to_content(history))
 
 
 @tree.command(name="ask", description="提出问题，不会考虑上下文/系统，不会保存到历史")

@@ -51,13 +51,13 @@ class GroupContext:
             # 无历史
             self.history = []
             return
-        self.history = get_channel_history(channel_id=self.channel_id)
+        self.history = get_channel_context(channel_id=self.channel_id)
 
     def dump_history(self):
-        save_channel_history(channel_id=self.channel_id, history=self.history)
+        save_channel_context(channel_id=self.channel_id, history=self.history)
 
     def history_content(self):
-        return get_channel_history_content(history=self.history)
+        return convert_channel_history_to_content(history=self.history)
 
     async def send_message(self, content: str):
         await discord_send_message(source=self.channel_id, content=content)

@@ -9,7 +9,7 @@ import yaml
 from typing import Union
 
 
-def get_channel_history_path(channel_id: int) -> str:
+def get_channel_context_path(channel_id: int) -> str:
     return f'./{DIRECTORY_CONTEXT}/{channel_id}.json'
 
 
@@ -63,8 +63,8 @@ def save_channel_setting(channel_id: int, setting: dict):
         json.dump(setting, f, ensure_ascii=False)
 
 
-def get_channel_history(channel_id: int) -> list:
-    filepath = get_channel_history_path(channel_id=channel_id)
+def get_channel_context(channel_id: int) -> list:
+    filepath = get_channel_context_path(channel_id=channel_id)
     history = []
     if os.path.isfile(filepath):
         with open(filepath, 'r') as file:
@@ -72,18 +72,18 @@ def get_channel_history(channel_id: int) -> list:
             if not isinstance(history, list):
                 # 历史数据不是列表
                 history = []
-                save_channel_history(channel_id=channel_id,
+                save_channel_context(channel_id=channel_id,
                                      history=history)
     return history
 
 
-def get_channel_history_content(history: list) -> str:
+def convert_channel_history_to_content(history: list) -> str:
     return '\n'.join([f"{msg['role']}: {msg['content']}" for msg in history])
 
 
-def save_channel_history(channel_id: int, history: list):
+def save_channel_context(channel_id: int, history: list):
     makedirs(DIRECTORY_CONTEXT)
-    with open(get_channel_history_path(channel_id=channel_id),
+    with open(get_channel_context_path(channel_id=channel_id),
               'w',
               encoding='utf-8') as file:
         json.dump(history, file, ensure_ascii=False, indent=4)
