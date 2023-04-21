@@ -71,10 +71,10 @@ async def command_ask(interaction: discord.Interaction, question: str):
             gpt_model=gpt_model,
             temperature=temperature)
     if isinstance(response, str):
-        await discord_send_message(source=interaction, content=response)
+        await discord_send_message(source=interaction.channel.id, content=response)
     else:
         response_content = extract_openai_chat_response_content(response)
-        await discord_send_message(source=interaction,
+        await discord_send_message(source=interaction.channel.id,
                                    content=response_content)
 
 
