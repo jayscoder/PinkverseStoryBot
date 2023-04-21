@@ -142,4 +142,4 @@ async def discord_send_message(source: Union[int, discord.Interaction], content:
             await bot.get_channel(source).send(chunk)
     elif isinstance(source, discord.Interaction):
         for chunk in chunks:
-            source.response.send_message(chunk)
+            await source.response.send_message(chunk)
