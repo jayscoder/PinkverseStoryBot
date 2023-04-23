@@ -1,6 +1,7 @@
 from utils import *
 from discord.channel import DMChannel, TextChannel
 
+
 # 频道上下文
 class ChannelContext:
 
@@ -15,6 +16,7 @@ class ChannelContext:
         self.from_bot = message.author == bot.user
         self.document = ''  # 文档里的内容
         self.setting = get_channel_setting(channel_id=message.channel.id)
+        self.author_name = message.author.display_name or message.author.nick or message.author.name
 
         self.channel_mode = ChannelMode.DEFAULT
 
@@ -32,12 +34,15 @@ class ChannelContext:
         self.history = []
         self.load_history()
 
-        self.system = message.channel.topic or ''
+        self.system = extract_channel_topic(channel=message.channel)
         if self.system == '':
             if self.channel_mode & ChannelMode.GROUP:
                 self.system = DEFAULT_GROUP_GPT_SYSTEM
             else:
                 self.system = DEFAULT_GPT_SYSTEM
+        if isinstance(message.channel, DMChannel):
+            self.system = f'''user是一个真实用户，他的名字叫{self.author_name}
+            assistant是user的人工智能助手'''
 
         self.is_eval = False  # 是否执行返回的代码
 
