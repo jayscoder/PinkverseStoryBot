@@ -3,6 +3,7 @@ from collections import defaultdict
 
 dm_history_dict = defaultdict(list)
 
+
 class DMContext:
 
     def __init__(self, message: discord.Message):
@@ -14,6 +15,7 @@ class DMContext:
         self.from_user = message.author != bot.user
         self.from_bot = message.author == bot.user
         self.author_name = message.author.display_name or message.author.nick or message.author.name or 'NoName'
+        self.author_id = message.author.id
         # 判断当前应该采用哪个gpt_model
         self.gpt_model = DEFAULT_GPT_MODEL
         self.system = f'''user是一个真实用户，他的名字叫{self.author_name}
@@ -21,9 +23,6 @@ assistant是user的人工智能助手'''
         # 加载历史数据
         self.history = []
         self.load_history()
-
-        self.is_eval = False # 是否执行返回的代码
-
 
     def load_history(self):
         self.history = dm_history_dict[self.dm_id]
@@ -184,60 +183,31 @@ assistant是user的人工智能助手'''
                     [choice.message.content or 'None' for choice in response.choices])
             for choice in response.choices:
                 self.history.append(choice.message)
+
             completion_tokens = response['usage']['completion_tokens']
             prompt_tokens = response['usage']['prompt_tokens']
             total_tokens = response['usage']['total_tokens']
             current_model = response['model']
 
-            if self.is_eval:
-                eval_result = eval(response_content)
-                response_content = f'''输出: {eval_result}\n\n代码: {response_content}'''
+            if len(total_tokens) > MAX_GPT_TOKENS:
+                response_content += f'''
+    > tokens: {completion_tokens} + {prompt_tokens} = {total_tokens}
+    > model: {current_model}
+    > GPT-3.5: {total_tokens * GPT_3_5_TOKEN_PRICE}
+    > GPT-4: ¥{total_tokens * GPT_4_TOKEN_PRICE}'''
 
-            response_content += f'''
-> tokens: {completion_tokens} + {prompt_tokens} = {total_tokens}
-> model: {current_model}
-> GPT-3.5: {total_tokens * GPT_3_5_TOKEN_PRICE}
-> GPT-4: ¥{total_tokens * GPT_4_TOKEN_PRICE}'''
             self.dump_history()
             await self.send_message(response_content)
         else:
             await self.send_message("ChatGPT API没有返回有效的响应。")
 
-    # openai聊天模型
     async def get_openai_chat_completion(self):
-        try:
-            post_messages = self.history
-            if self.system != '':
-                post_messages = [{
-                    'role'   : 'system',
-                    'content': self.system
-                }] + post_messages
-
-            response = openai.ChatCompletion.create(model=self.gpt_model,
-                                                    messages=post_messages)
-            return response
-        except ConnectionError as ce:
-            return "无法连接到ChatGPT API。"
-        except TimeoutError as te:
-            return "ChatGPT API请求超时。"
-        except Exception as e:
-            return f"ChatGPT API请求失败: {e}"
+        return get_openai_chat_completion(
+                channel_id=self.author_id,
+                history=self.history,
+                system=self.system,
+                save_data=False
+        )
 
     async def get_openai_image(self, width: int, height: int):
-        try:
-            if width > 1024:
-                width = 1024
-            if height > 1024:
-                height = 1024
-            response = openai.Image.create(
-                    prompt=f'{self.content}',
-                    n=1,
-                    size=f"{width}x{height}"
-            )
-            return response
-        except ConnectionError as ce:
-            return "无法连接到ChatGPT API。"
-        except TimeoutError as te:
-            return "ChatGPT API请求超时。"
-        except Exception as e:
-            return f"ChatGPT API请求失败: {e}"
+        return get_openai_image(prompt=self.content, width=width, height=height)

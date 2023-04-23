@@ -23,9 +23,9 @@ def makedirs(directory: str):
         os.makedirs(directory)
 
 
-def jsonl_append_json(dirname: str, channel_name: str, new_item: list):
+def jsonl_append_json(dirname: str, channel_id: int, new_item: list):
     makedirs(dirname)
-    with open(os.path.join(dirname, f'{channel_name}.jsonl'),
+    with open(os.path.join(dirname, f'{channel_id}.jsonl'),
               'a+',
               encoding='utf-8') as f:
         json.dump(new_item, f, ensure_ascii=False)
@@ -157,8 +157,12 @@ def get_openai_image(prompt: str, width: int, height: int):
 
 
 # openai聊天模型
-def get_openai_chat_completion(channel_name: str, history: list, system: str,
-                               gpt_model: str, temperature: float):
+def get_openai_chat_completion(channel_id: int,
+                               history: list,
+                               system: str = '',
+                               gpt_model: str = DEFAULT_GPT_MODEL,
+                               temperature: float = DEFAULT_TEMPERATURE,
+                               save_data: bool = True):
     switch_openai_key()
 
     try:
@@ -179,11 +183,11 @@ def get_openai_chat_completion(channel_name: str, history: list, system: str,
 
         for choice in response.choices:
             post_messages.append(choice.message)
-
-        # 将数据永久保存下来，方便以后用来训练
-        jsonl_append_json(dirname=DIRECTORY_HISTORY,
-                          channel_name=channel_name,
-                          new_item=post_messages)
+        if save_data:
+            # 将数据永久保存下来，方便以后用来训练
+            jsonl_append_json(dirname=DIRECTORY_HISTORY,
+                              channel_id=channel_id,
+                              new_item=post_messages)
 
         return response
     except ConnectionError as ce:
