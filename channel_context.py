@@ -17,7 +17,8 @@ class ChannelContext:
         self.document = ''  # 文档里的内容
         self.setting = get_channel_setting(channel_id=message.channel.id)
         self.author_name = message.author.display_name or message.author.nick or message.author.name
-        print(f'channel_id={self.channel_id}')
+        self.author_id = message.author.id
+        print(f'channel_id={self.channel_id} author_id={self.author_id}')
         self.channel_mode = ChannelMode.DEFAULT
 
         # 判断当前频道类型
