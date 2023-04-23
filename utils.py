@@ -72,7 +72,8 @@ async def save_channel_info(channel):
         'id'   : channel.id,
         'topic': extract_channel_topic(channel),
         'type' : str(type(channel)),
-        'guild': channel.guild.name or ''
+        'guild_id': channel.guild.id,
+        'guild_name': channel.guild.name
     }
     if isinstance(channel, TextChannel):
         info['members'] = await get_channel_member_list(channel)
