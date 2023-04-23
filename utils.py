@@ -235,6 +235,6 @@ def extract_channel_topic(channel) -> str:
         return ''
     else:
         try:
-            return channel.topic
+            return channel.topic or ''
         except:
             return ''
