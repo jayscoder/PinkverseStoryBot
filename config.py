@@ -58,6 +58,7 @@ HELP_CONTENT = '''!help: 获取当前的指令手册
 '''
 
 DEFAULT_GPT_MODEL = 'gpt-3.5-turbo'  # 默认是gpt-3.5
+DEFAULT_TEMPERATURE = 1 # 默认温度
 
 # 默认GPT系统
 DEFAULT_GROUP_GPT_SYSTEM = "user文本第一行冒号前的内容是发送者名称"
