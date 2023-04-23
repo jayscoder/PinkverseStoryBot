@@ -64,7 +64,7 @@ def save_channel_setting(channel_id: int, setting: dict):
         json.dump(setting, f, ensure_ascii=False)
 
 
-def save_channel_info(channel):
+async def save_channel_info(channel):
     channel_id = channel.id
 
     info = {
