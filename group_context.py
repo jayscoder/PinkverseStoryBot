@@ -1,5 +1,5 @@
 from utils import *
-
+from discord.channel import DMChannel, TextChannel
 
 # 群聊上下文
 class GroupContext:
@@ -7,7 +7,10 @@ class GroupContext:
     def __init__(self, message: discord.Message):
         self.message = message
         self.content = message.content
-        self.channel_name = message.channel.name or str(message.channel.id)
+        if isinstance(message.channel, DMChannel):
+            self.channel_name = str(message.channel.id)
+        else:
+            self.channel_name = message.channel.name or str(message.channel.id)
         self.channel_id = message.channel.id
         # 来自用户发的内容
         self.from_user = message.author != bot.user
