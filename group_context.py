@@ -71,8 +71,12 @@ class GroupContext:
 
     # openai聊天模型
     async def get_openai_chat_completion(self, history: list):
-        return get_openai_chat_completion(channel_name=self.channel_name, history=history, system=self.system,
-                                          gpt_model=self.gpt_model, temperature=self.setting['temperature'])
+        return get_openai_chat_completion(
+                channel_id=self.channel_id,
+                history=history,
+                system=self.system,
+                gpt_model=self.gpt_model,
+                temperature=self.setting['temperature'])
 
     # on_message事件
     async def on_message(self):
@@ -172,7 +176,7 @@ class GroupContext:
             else:
                 self.history.append({ "role": 'user', "content": self.content, 'name': str(self.message.author.id) })
             async with self.message.channel.typing():
-            # async with BotThinking(channel_id=self.channel_id, content=self.content):
+                # async with BotThinking(channel_id=self.channel_id, content=self.content):
                 response = await self.get_openai_chat_completion(history=self.history)
 
             if isinstance(response, str):
