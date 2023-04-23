@@ -15,8 +15,8 @@ async def on_message(message: discord.Message):
     # 群聊
     print(f'{message.author.display_name}: {message.content}')
     await ChannelContext(message).on_message()
-
-    await save_channel_info(message.channel)
+    asyncio.create_task(save_channel_info(message.channel))
+    # await save_channel_info(message.channel)
 
     # if isinstance(message.channel, discord.DMChannel):
     #     # 私信
@@ -233,7 +233,7 @@ async def on_ready():
             # if channel.name == '欢迎光临！':
             # await channel.send('我上线啦')
             print(channel)
-            await save_channel_info(channel)
+            asyncio.create_task(save_channel_info(channel))
 
 
 if __name__ == '__main__':
