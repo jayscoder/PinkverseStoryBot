@@ -16,7 +16,7 @@ async def on_message(message: discord.Message):
     print(f'{message.author.display_name}: {message.content}')
     await ChannelContext(message).on_message()
 
-    save_channel_info(message.channel)
+    await save_channel_info(message.channel)
 
     # if isinstance(message.channel, discord.DMChannel):
     #     # 私信
@@ -233,7 +233,7 @@ async def on_ready():
             # if channel.name == '欢迎光临！':
             # await channel.send('我上线啦')
             print(channel)
-            save_channel_info(channel)
+            await save_channel_info(channel)
 
 
 if __name__ == '__main__':
