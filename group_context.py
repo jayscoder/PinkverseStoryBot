@@ -13,9 +13,8 @@ class GroupContext:
     def __init__(self, message: discord.Message):
         self.message = message
         self.content = message.content
-        self.channel_name = message.channel.name
+        self.channel_name = message.channel.name or str(message.channel.id)
         self.channel_id = message.channel.id
-        self.file_path = f'./{DIRECTORY_CONTEXT}/{self.channel_name}.json'
         # 来自用户发的内容
         self.from_user = message.author != bot.user
         self.from_bot = message.author == bot.user
@@ -23,6 +22,7 @@ class GroupContext:
         self.setting = get_channel_setting(channel_id=message.channel.id)
 
         self.channel_mode = ChannelMode.DEFAULT
+
         # 判断当前频道类型
         if 'group' in self.channel_name:
             self.channel_mode |= ChannelMode.GROUP
@@ -71,7 +71,7 @@ class GroupContext:
 
     # openai聊天模型
     async def get_openai_chat_completion(self, history: list):
-        return get_openai_chat_completion(
+        return await get_openai_chat_completion(
                 channel_id=self.channel_id,
                 history=history,
                 system=self.system,
@@ -151,7 +151,7 @@ class GroupContext:
         if Command.check_startswith(self.content, Command.IMAGINE):
             width, height, self.content = Command.parse_imagine(self.content)
             async with self.message.channel.typing():
-                response = get_openai_image(prompt=self.content, width=width, height=height)
+                response = await get_openai_image(prompt=self.content, width=width, height=height)
             # 生成图片
             if isinstance(response, str):
                 await self.send_message(response)
@@ -296,7 +296,7 @@ class GroupContext:
                 total_tokens += response['usage']['total_tokens']
                 current_model = response['model']
 
-            dirname = os.path.join(DIRECTORY_OUTPUT, self.channel_name)
+            dirname = os.path.join(DIRECTORY_OUTPUT, str(self.channel_id))
             makedirs(dirname)
             filepath = os.path.join(dirname, time_id() + '.txt')
             with open(filepath, 'w', encoding='utf-8') as f:

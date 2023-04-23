@@ -1,7 +1,5 @@
 import json
-
 import discord.context_managers
-
 from config import *
 from datetime import datetime
 import time
@@ -137,16 +135,25 @@ async def discord_send_message(source: Union[int, discord.Interaction, discord.T
     return message
 
 
-def get_openai_image(prompt: str, width: int, height: int):
-    switch_openai_key()
+async def get_openai_image(prompt: str, width: int, height: int):
     try:
         if width > 1024:
             width = 1024
         if height > 1024:
             height = 1024
-        response = openai.Image.create(prompt=f'{prompt}',
+
+        def call():
+            print(f'get_openai_image thread={threading.current_thread().name}')
+            switch_openai_key()
+            return openai.Image.create(prompt=f'{prompt}',
                                        n=1,
                                        size=f"{width}x{height}")
+
+        loop = asyncio.get_running_loop()
+        response = await loop.run_in_executor(None, call)
+        # response = openai.Image.create(prompt=f'{prompt}',
+        #                                n=1,
+        #                                size=f"{width}x{height}")
         return response
     except ConnectionError as ce:
         return "无法连接到ChatGPT API。"
@@ -157,20 +164,22 @@ def get_openai_image(prompt: str, width: int, height: int):
 
 
 # openai聊天模型
-def get_openai_chat_completion(channel_id: int,
-                               history: list,
-                               system: str = '',
-                               gpt_model: str = DEFAULT_GPT_MODEL,
-                               temperature: float = DEFAULT_TEMPERATURE,
-                               save_data: bool = True):
-    switch_openai_key()
+async def get_openai_chat_completion(
+        channel_id: int,
+        history: list,
+        system: str = '',
+        gpt_model: str = DEFAULT_GPT_MODEL,
+        temperature: float = DEFAULT_TEMPERATURE,
+        save_data: bool = True):
+    def call(messages: list):
+        print(f'get_openai_chat_completion thread={threading.current_thread().name}')
+        switch_openai_key()
+        return openai.ChatCompletion.create(
+                model=gpt_model,
+                messages=messages,
+                temperature=temperature)
 
     try:
-        async def call():
-            return openai.ChatCompletion.create(model=gpt_model,
-                                                messages=post_messages,
-                                                temperature=temperature)
-
         # clone
         post_messages = list(history)
         if system != '':
@@ -178,8 +187,9 @@ def get_openai_chat_completion(channel_id: int,
                 'role'   : 'system',
                 'content': system
             }] + post_messages
-        print(f'gpt_model={gpt_model}', post_messages)
-        response = asyncio.run_coroutine_threadsafe(call(), OPENAI_API_LOOPS[openai_api_key_index]).result()
+
+        loop = asyncio.get_running_loop()
+        response = await loop.run_in_executor(None, call, post_messages)
 
         for choice in response.choices:
             post_messages.append(choice.message)
@@ -207,63 +217,62 @@ def extract_channel_gpt_model(channel_name: str) -> str:
             break
     return gpt_model
 
-
 # def channel_typing(channel_id: int) -> discord.context_managers.Typing:
 #     channel = bot.get_channel(channel_id)
 #     return channel.typing()
 
-def _loading_done_callback(fut: asyncio.Future) -> None:
-    # just retrieve any exception and call it a day
-    try:
-        fut.exception()
-    except (asyncio.CancelledError, Exception):
-        pass
+# def _loading_done_callback(fut: asyncio.Future) -> None:
+#     # just retrieve any exception and call it a day
+#     try:
+#         fut.exception()
+#     except (asyncio.CancelledError, Exception):
+#         pass
 
 
-class BotThinking:
-    def __init__(self, channel_id: int, content: str):
-        self.start_time = 0
-        self.dots = 0
-        self.channel_id = channel_id
-        self.content = get_brief(content)
-        self.message = None
-
-    async def do_thinking(self) -> None:
-        while True:
-            await self.send_thinking()
-            await asyncio.sleep(1)
-
-    async def send_thinking(self):
-        print('BotThinkingSend', self.content, self.message is None)
-        now = time.time()
-        self.dots = (self.dots + 1) % 6
-        dots_str = '.' * (self.dots + 1)
-        content = f'\n> bot思考中️{dots_str}: {self.content} ({round((now - self.start_time))}s)'
-        if self.message is None:
-            self.message = await discord_send_message(source=self.channel_id, content=content)
-        else:
-            await self.message.edit(content=content)
-
-    async def __aenter__(self) -> None:
-        print('BotThinkingEnter', self.content)
-        self.start_time = time.time()
-        self.task = asyncio.run_coroutine_threadsafe(self.do_thinking(), thinking_loop)
-        self.task.add_done_callback(_loading_done_callback)
-
-    async def __aexit__(
-            self,
-            exc_type,
-            exc,
-            traceback,
-    ) -> None:
-        print('BotThinkingExit', self.content)
-        self.task.cancel()
-        if self.message is not None:
-            await self.message.delete()
-
-
-def get_brief(content: str):
-    if len(content) > 15:
-        return content[:15] + '...'
-    else:
-        return content
+# class BotThinking:
+#     def __init__(self, channel_id: int, content: str):
+#         self.start_time = 0
+#         self.dots = 0
+#         self.channel_id = channel_id
+#         self.content = get_brief(content)
+#         self.message = None
+#
+#     async def do_thinking(self) -> None:
+#         while True:
+#             await self.send_thinking()
+#             await asyncio.sleep(1)
+#
+#     async def send_thinking(self):
+#         print('BotThinkingSend', self.content, self.message is None)
+#         now = time.time()
+#         self.dots = (self.dots + 1) % 6
+#         dots_str = '.' * (self.dots + 1)
+#         content = f'\n> bot思考中️{dots_str}: {self.content} ({round((now - self.start_time))}s)'
+#         if self.message is None:
+#             self.message = await discord_send_message(source=self.channel_id, content=content)
+#         else:
+#             await self.message.edit(content=content)
+#
+#     async def __aenter__(self) -> None:
+#         print('BotThinkingEnter', self.content)
+#         self.start_time = time.time()
+#         self.task = asyncio.run_coroutine_threadsafe(self.do_thinking(), thinking_loop)
+#         self.task.add_done_callback(_loading_done_callback)
+#
+#     async def __aexit__(
+#             self,
+#             exc_type,
+#             exc,
+#             traceback,
+#     ) -> None:
+#         print('BotThinkingExit', self.content)
+#         self.task.cancel()
+#         if self.message is not None:
+#             await self.message.delete()
+#
+#
+# def get_brief(content: str):
+#     if len(content) > 15:
+#         return content[:15] + '...'
+#     else:
+#         return content

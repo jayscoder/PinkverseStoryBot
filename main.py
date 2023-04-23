@@ -13,27 +13,32 @@ from discord import app_commands
 # 定义bot接收到消息的事件
 @bot.event
 async def on_message(message: discord.Message):
-    if isinstance(message.channel, discord.DMChannel):
-        # 私信
-        print(f'{message.author.display_name}')
-        await DMContext(message).on_message()
-    else:
-        # 群聊
-        print(f'{message.channel.name}: {message.content}')
-        await GroupContext(message).on_message()
+    # 群聊
+    print(f'{message.author.display_name}: {message.content}')
+    await GroupContext(message).on_message()
+    # if isinstance(message.channel, discord.DMChannel):
+    #     # 私信
+    #     print(f'{message.author.display_name}')
+    #     await DMContext(message).on_message()
+    # else:
+    #     # 群聊
+    #     print(f'{message.channel.name}: {message.content}')
+    #     await GroupContext(message).on_message()
 
 
 # 定义bot接收到消息编辑的事件
 @bot.event
 async def on_message_edit(before: discord.Message, after: discord.Message):
-    if isinstance(after.channel, discord.DMChannel):
-        # 私信
-        print(f'{after.author.display_name}')
-        await DMContext(after).on_message()
-    else:
-        # 群聊
-        print(f'{after.channel.name}: {after.content}')
-        await GroupContext(after).on_message()
+    print(f'{after.author.display_name}: {after.content}')
+    await GroupContext(after).on_message()
+    # if isinstance(after.channel, discord.DMChannel):
+    #     # 私信
+    #     print(f'{after.author.display_name}')
+    #     await DMContext(after).on_message()
+    # else:
+    #     # 群聊
+    #     print(f'{after.channel.name}: {after.content}')
+    #     await GroupContext(after).on_message()
 
 
 @tree.command(name="clear", description="清空历史")
@@ -60,8 +65,8 @@ async def command_ask(interaction: discord.Interaction, question: str):
             source=interaction,
             content=f'> {question} --model={gpt_model} --temperature={temperature}')
     async with bot.get_channel(interaction.channel.id).typing():
-        response = get_openai_chat_completion(
-                channel_name=interaction.channel.name,
+        response = await get_openai_chat_completion(
+                channel_id=interaction.channel.id,
                 history=[{
                     'role'   : 'user',
                     'content': question
@@ -87,7 +92,7 @@ async def command_imagine(interaction: discord.Interaction,
                           prompt: str,
                           size: int = 1024):
     await discord_send_message(source=interaction, content=f'> {prompt} --width={size} --height={size}')
-    response = get_openai_image(prompt=prompt, width=size, height=size)
+    response = await get_openai_image(prompt=prompt, width=size, height=size)
 
     # 生成图片（响应时间太久了就无法发送消息了）
     if isinstance(response, str):
