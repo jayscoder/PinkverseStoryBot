@@ -7,6 +7,8 @@ import yaml
 from typing import Union
 import asyncio
 import threading
+from discord.channel import DMChannel
+
 
 def get_channel_context_path(channel_id: int) -> str:
     return f'./{DIRECTORY_CONTEXT}/{channel_id}.json'
@@ -216,3 +218,13 @@ def extract_channel_gpt_model(channel_name: str) -> str:
             gpt_model = model_id
             break
     return gpt_model
+
+
+def extract_channel_name(channel) -> str:
+    if isinstance(channel, DMChannel):
+        return str(channel.id)
+    else:
+        try:
+            return channel.name
+        except:
+            return str(channel.id)
