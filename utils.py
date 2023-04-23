@@ -111,8 +111,7 @@ def save_channel_context(channel_id: int, history: list):
 async def get_channel_member_list(channel):
     try:
         member_list = []
-
-        async for member in channel.fetch_members():
+        async for member in channel.guild.fetch_members():
             member_list.append(member)
 
         member_nicknames = [member.nick or member.name for member in member_list]
