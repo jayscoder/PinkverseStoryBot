@@ -7,7 +7,7 @@ import yaml
 from typing import Union
 import asyncio
 import threading
-from discord.channel import DMChannel
+from discord.channel import DMChannel, TextChannel
 
 
 def get_channel_context_path(channel_id: int) -> str:
@@ -62,6 +62,23 @@ def save_channel_setting(channel_id: int, setting: dict):
     filename = get_channel_setting_path(channel_id=channel_id)
     with open(filename, 'w', encoding='utf-8') as f:
         json.dump(setting, f, ensure_ascii=False)
+
+
+def save_channel_info(channel):
+    channel_id = channel.id
+
+    info = {
+        'name' : extract_channel_name(channel),
+        'id'   : channel.id,
+        'topic': extract_channel_topic(channel),
+    }
+    if isinstance(channel, TextChannel):
+        info['members'] = await get_channel_member_list(channel_id)
+
+    makedirs(DIRECTORY_INFO)
+
+    with open(os.path.join(DIRECTORY_INFO, f'{channel_id}.json'), 'w', encoding='utf-8') as f:
+        json.dump(info, f, ensure_ascii=False)
 
 
 def get_channel_context(channel_id: int) -> list:
