@@ -54,7 +54,7 @@ async def command_history(interaction: discord.Interaction):
     await discord_send_message(source=interaction,
                                content=convert_channel_history_to_content(history))
 
-@tree.command(name="current model", description="获取当前使用的GPT模型")
+@tree.command(name="current-model", description="获取当前使用的GPT模型")
 async def command_current_model(interaction: discord.Interaction):
     model = extract_channel_gpt_model(channel_name=extract_channel_name(channel=interaction.channel))
     await discord_send_message(source=interaction,
