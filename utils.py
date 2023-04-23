@@ -6,7 +6,7 @@ import time
 import yaml
 from typing import Union
 import asyncio
-
+import threading
 
 def get_channel_context_path(channel_id: int) -> str:
     return f'./{DIRECTORY_CONTEXT}/{channel_id}.json'
@@ -216,63 +216,3 @@ def extract_channel_gpt_model(channel_name: str) -> str:
             gpt_model = model_id
             break
     return gpt_model
-
-# def channel_typing(channel_id: int) -> discord.context_managers.Typing:
-#     channel = bot.get_channel(channel_id)
-#     return channel.typing()
-
-# def _loading_done_callback(fut: asyncio.Future) -> None:
-#     # just retrieve any exception and call it a day
-#     try:
-#         fut.exception()
-#     except (asyncio.CancelledError, Exception):
-#         pass
-
-
-# class BotThinking:
-#     def __init__(self, channel_id: int, content: str):
-#         self.start_time = 0
-#         self.dots = 0
-#         self.channel_id = channel_id
-#         self.content = get_brief(content)
-#         self.message = None
-#
-#     async def do_thinking(self) -> None:
-#         while True:
-#             await self.send_thinking()
-#             await asyncio.sleep(1)
-#
-#     async def send_thinking(self):
-#         print('BotThinkingSend', self.content, self.message is None)
-#         now = time.time()
-#         self.dots = (self.dots + 1) % 6
-#         dots_str = '.' * (self.dots + 1)
-#         content = f'\n> bot思考中️{dots_str}: {self.content} ({round((now - self.start_time))}s)'
-#         if self.message is None:
-#             self.message = await discord_send_message(source=self.channel_id, content=content)
-#         else:
-#             await self.message.edit(content=content)
-#
-#     async def __aenter__(self) -> None:
-#         print('BotThinkingEnter', self.content)
-#         self.start_time = time.time()
-#         self.task = asyncio.run_coroutine_threadsafe(self.do_thinking(), thinking_loop)
-#         self.task.add_done_callback(_loading_done_callback)
-#
-#     async def __aexit__(
-#             self,
-#             exc_type,
-#             exc,
-#             traceback,
-#     ) -> None:
-#         print('BotThinkingExit', self.content)
-#         self.task.cancel()
-#         if self.message is not None:
-#             await self.message.delete()
-#
-#
-# def get_brief(content: str):
-#     if len(content) > 15:
-#         return content[:15] + '...'
-#     else:
-#         return content

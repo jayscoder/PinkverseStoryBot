@@ -2,7 +2,6 @@ import discord
 from config import *
 from utils import *
 from group_context import GroupContext
-from dm_context import DMContext
 from discord import app_commands
 
 

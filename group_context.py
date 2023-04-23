@@ -1,10 +1,4 @@
-import json
-
-import discord
-
-import config
 from utils import *
-import time
 
 
 # 群聊上下文

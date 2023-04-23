@@ -5,33 +5,29 @@ import constantly
 from enum import Flag, auto
 import re
 from discord import app_commands
-from threads import *
 
 OPENAI_API_KEYS = [
     os.getenv("OPENAI_API_KEY0"),
     os.getenv("OPENAI_API_KEY1"),
     os.getenv("OPENAI_API_KEY2"),
     os.getenv("OPENAI_API_KEY3"),
-    os.getenv("OPENAI_API_KEY4")
-]
-
-OPENAI_API_LOOPS = [
-    new_thread_loop(),
-    new_thread_loop(),
-    new_thread_loop(),
-    new_thread_loop(),
-    new_thread_loop(),
+    os.getenv("OPENAI_API_KEY4"),
+    os.getenv("OPENAI_API_KEY5"),
+    os.getenv("OPENAI_API_KEY6"),
+    os.getenv("OPENAI_API_KEY7"),
+    os.getenv("OPENAI_API_KEY8"),
+    os.getenv("OPENAI_API_KEY9"),
 ]
 
 openai_api_key_index = 0
 openai.api_key = OPENAI_API_KEYS[openai_api_key_index]
-thinking_loop = new_thread_loop()
 
 
 def switch_openai_key():
     global openai_api_key_index
     openai_api_key_index = (openai_api_key_index + 1) % len(OPENAI_API_KEYS)
     openai.api_key = OPENAI_API_KEYS[openai_api_key_index]
+
 
 bot = discord.Client(
         intents=discord.Intents.all()
@@ -58,7 +54,7 @@ HELP_CONTENT = '''!help: 获取当前的指令手册
 '''
 
 DEFAULT_GPT_MODEL = 'gpt-3.5-turbo'  # 默认是gpt-3.5
-DEFAULT_TEMPERATURE = 1 # 默认温度
+DEFAULT_TEMPERATURE = 1  # 默认温度
 
 # 默认GPT系统
 DEFAULT_GROUP_GPT_SYSTEM = "user文本第一行冒号前的内容是发送者名称"
