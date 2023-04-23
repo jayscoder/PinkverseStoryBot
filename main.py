@@ -54,6 +54,7 @@ async def command_history(interaction: discord.Interaction):
     await discord_send_message(source=interaction,
                                content=convert_channel_history_to_content(history))
 
+
 @tree.command(name="current-model", description="获取当前使用的GPT模型")
 async def command_current_model(interaction: discord.Interaction):
     model = extract_channel_gpt_model(channel_name=extract_channel_name(channel=interaction.channel))
@@ -73,9 +74,8 @@ async def command_ask(interaction: discord.Interaction, question: str):
     setting = get_channel_setting(channel_id=interaction.channel.id)
     gpt_model = extract_channel_gpt_model(interaction.channel.name)
     temperature = setting['temperature']
-    await discord_send_message(
-            source=interaction,
-            content=f'> {question} --model={gpt_model} --temperature={temperature}')
+    await discord_send_message(source=interaction,
+                               content=f'> {question} --model={gpt_model} --temperature={temperature}')
     async with bot.get_channel(interaction.channel.id).typing():
         response = await get_openai_chat_completion(
                 channel_id=interaction.channel.id,
@@ -87,10 +87,10 @@ async def command_ask(interaction: discord.Interaction, question: str):
                 gpt_model=gpt_model,
                 temperature=temperature)
     if isinstance(response, str):
-        await discord_send_message(source=interaction.channel.id, content=response)
+        await discord_send_message(source=interaction.channel, content=response)
     else:
         response_content = extract_openai_chat_response_content(response)
-        await discord_send_message(source=interaction.channel.id,
+        await discord_send_message(source=interaction.channel,
                                    content=response_content)
 
 
@@ -108,12 +108,12 @@ async def command_imagine(interaction: discord.Interaction,
 
     # 生成图片（响应时间太久了就无法发送消息了）
     if isinstance(response, str):
-        await discord_send_message(source=interaction.channel.id, content=response)
+        await discord_send_message(source=interaction.channel, content=response)
         return
     else:
         response_content = '\n'.join(
                 [item['url'] for i, item in enumerate(response['data'])])
-        await discord_send_message(source=interaction.channel.id,
+        await discord_send_message(source=interaction.channel,
                                    content=response_content)
         return
 

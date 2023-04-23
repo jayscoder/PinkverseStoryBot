@@ -9,7 +9,7 @@ class ChannelContext:
         self.message = message
         self.content = message.content
         self.channel_name = extract_channel_name(message.channel)
-
+        self.channel = message.channel
         self.channel_id = message.channel.id
         # 来自用户发的内容
         self.from_user = message.author != bot.user
@@ -61,7 +61,7 @@ class ChannelContext:
         return convert_channel_history_to_content(history=self.history)
 
     async def send_message(self, content: str):
-        await discord_send_message(source=self.channel_id, content=content)
+        await discord_send_message(source=self.channel, content=content)
 
     # 获取当前历史token
     def history_tokens(self):
