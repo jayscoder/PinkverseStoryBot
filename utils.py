@@ -68,16 +68,17 @@ async def save_channel_info(channel):
     channel_id = channel.id
 
     info = {
-        'name' : extract_channel_name(channel),
-        'id'   : channel.id,
-        'topic': extract_channel_topic(channel),
-        'type' : str(type(channel)),
-        'guild_id': channel.guild.id,
-        'guild_name': channel.guild.name
+        'name'             : extract_channel_name(channel),
+        'id'               : channel.id,
+        'topic'            : extract_channel_topic(channel),
+        'type'             : str(type(channel)),
+        'guild_id'         : channel.guild.id,
+        'guild_name'       : channel.guild.name,
+        'guild_description': channel.guild.description
     }
+
     if isinstance(channel, TextChannel):
         info['members'] = await get_channel_member_list(channel)
-
     makedirs(DIRECTORY_INFO)
 
     with open(os.path.join(DIRECTORY_INFO, f'{channel_id}.json'), 'w', encoding='utf-8') as f:
