@@ -9,13 +9,12 @@ class DMContext:
     def __init__(self, message: discord.Message):
         self.message = message
         self.content = message.content
-        self.dm_id = message.author.id
-        self.file_path = f'./{DIRECTORY_CONTEXT}/{self.dm_id}.json'
+        self.channel_id = message.channel.id
+        self.file_path = f'./{DIRECTORY_CONTEXT}/{self.channel_id}.json'
         # 来自用户发的内容
         self.from_user = message.author != bot.user
         self.from_bot = message.author == bot.user
         self.author_name = message.author.display_name or message.author.nick or message.author.name or 'NoName'
-        self.author_id = message.author.id
         # 判断当前应该采用哪个gpt_model
         self.gpt_model = DEFAULT_GPT_MODEL
         self.system = f'''user是一个真实用户，他的名字叫{self.author_name}
@@ -25,10 +24,10 @@ assistant是user的人工智能助手'''
         self.load_history()
 
     def load_history(self):
-        self.history = dm_history_dict[self.dm_id]
+        self.history = dm_history_dict[self.channel_id]
 
     def dump_history(self):
-        dm_history_dict[self.dm_id] = self.history
+        dm_history_dict[self.channel_id] = self.history
 
     def history_content(self):
         return '\n'.join(
@@ -202,12 +201,12 @@ assistant是user的人工智能助手'''
             await self.send_message("ChatGPT API没有返回有效的响应。")
 
     async def get_openai_chat_completion(self):
-        return get_openai_chat_completion(
-                channel_id=self.author_id,
+        return await get_openai_chat_completion(
+                channel_id=self.channel_id,
                 history=self.history,
                 system=self.system,
                 save_data=False
         )
 
     async def get_openai_image(self, width: int, height: int):
-        return get_openai_image(prompt=self.content, width=width, height=height)
+        return await get_openai_image(prompt=self.content, width=width, height=height)
