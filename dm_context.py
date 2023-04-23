@@ -119,12 +119,6 @@ assistant是user的人工智能助手'''
             await self.send_message('\n'.join(member_list))
             return
 
-        if Command.check_startswith(self.content, Command.EVAL):
-            self.is_eval = True
-            self.content = Command.remove_startswith(self.content, Command.EVAL)
-        else:
-            self.is_eval = False
-
         summary = Command.check_equal(self.content, Command.SUMMARY)
         if summary:
             self.content = '请帮我将目前给你的上下文梳理成简短的几句话'
