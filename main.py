@@ -1,7 +1,7 @@
 import discord
 from config import *
 from utils import *
-from group_context import ChannelContext
+from channel_context import ChannelContext
 from discord import app_commands
 
 
