@@ -228,3 +228,12 @@ def extract_channel_name(channel) -> str:
             return channel.name
         except:
             return str(channel.id)
+
+def extract_channel_topic(channel) -> str:
+    if isinstance(channel, DMChannel):
+        return ''
+    else:
+        try:
+            return channel.topic
+        except:
+            return ''
