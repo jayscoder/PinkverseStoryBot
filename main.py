@@ -1,7 +1,7 @@
 import discord
 from config import *
 from utils import *
-from group_context import GroupContext
+from group_context import ChannelContext
 from discord import app_commands
 
 
@@ -14,7 +14,7 @@ from discord import app_commands
 async def on_message(message: discord.Message):
     # 群聊
     print(f'{message.author.display_name}: {message.content}')
-    await GroupContext(message).on_message()
+    await ChannelContext(message).on_message()
     # if isinstance(message.channel, discord.DMChannel):
     #     # 私信
     #     print(f'{message.author.display_name}')
@@ -29,7 +29,7 @@ async def on_message(message: discord.Message):
 @bot.event
 async def on_message_edit(before: discord.Message, after: discord.Message):
     print(f'{after.author.display_name}: {after.content}')
-    await GroupContext(after).on_message()
+    await ChannelContext(after).on_message()
     # if isinstance(after.channel, discord.DMChannel):
     #     # 私信
     #     print(f'{after.author.display_name}')
@@ -53,6 +53,19 @@ async def command_history(interaction: discord.Interaction):
     history = get_channel_context(channel_id=interaction.channel.id)
     await discord_send_message(source=interaction,
                                content=convert_channel_history_to_content(history))
+
+@tree.command(name="current model", description="获取当前使用的GPT模型")
+async def command_current_model(interaction: discord.Interaction):
+    model = extract_channel_gpt_model(channel_name=extract_channel_name(channel=interaction.channel))
+    await discord_send_message(source=interaction,
+                               content=model)
+
+
+# @tree.command(name="list models", description="获取当前可以使用的GPT模型列表")
+# async def command_list_models(interaction: discord.Interaction):
+#     model = extract_channel_gpt_model(channel_name=extract_channel_name(channel=interaction.channel))
+#     await discord_send_message(source=interaction,
+#                                content=model)
 
 
 @tree.command(name="ask", description="提出问题，不会考虑上下文/系统，不会保存到历史")

@@ -1,16 +1,14 @@
 from utils import *
 from discord.channel import DMChannel, TextChannel
 
-# 群聊上下文
-class GroupContext:
+# 频道上下文
+class ChannelContext:
 
     def __init__(self, message: discord.Message):
         self.message = message
         self.content = message.content
-        if isinstance(message.channel, DMChannel):
-            self.channel_name = str(message.channel.id)
-        else:
-            self.channel_name = message.channel.name or str(message.channel.id)
+        self.channel_name = extract_channel_name(message.channel)
+
         self.channel_id = message.channel.id
         # 来自用户发的内容
         self.from_user = message.author != bot.user
@@ -28,7 +26,7 @@ class GroupContext:
             self.channel_mode |= ChannelMode.NO_HISTORY
 
         # 判断当前应该采用哪个gpt_model
-        self.gpt_model = extract_channel_gpt_model(message.channel.name)
+        self.gpt_model = extract_channel_gpt_model(self.channel_name)
 
         # 加载历史数据
         self.history = []
