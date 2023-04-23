@@ -65,24 +65,30 @@ def save_channel_setting(channel_id: int, setting: dict):
 
 
 async def save_channel_info(channel):
-    channel_id = channel.id
+    try:
+        channel_id = channel.id
 
-    info = {
-        'name'             : extract_channel_name(channel),
-        'id'               : channel.id,
-        'topic'            : extract_channel_topic(channel),
-        'type'             : str(type(channel)),
-        'guild_id'         : channel.guild.id,
-        'guild_name'       : channel.guild.name,
-        'guild_description': channel.guild.description
-    }
+        info = {
+            'name'   : extract_channel_name(channel),
+            'id'     : channel.id,
+            'topic'  : extract_channel_topic(channel),
+            'type'   : str(type(channel)),
+            'members': await get_channel_member_list(channel)
+        }
+        if channel.guild is not None:
+            info['guild'] = {
+                'id'         : channel.guild.id,
+                'name'       : channel.guild.name,
+                'description': channel.guild.description,
+                'members'    : await get_guild_member_list(channel.guild),
+            },
 
-    if isinstance(channel, TextChannel):
-        info['members'] = await get_channel_member_list(channel)
-    makedirs(DIRECTORY_INFO)
+        makedirs(DIRECTORY_INFO)
 
-    with open(os.path.join(DIRECTORY_INFO, f'{channel_id}.json'), 'w', encoding='utf-8') as f:
-        json.dump(info, f, ensure_ascii=False)
+        with open(os.path.join(DIRECTORY_INFO, f'{channel_id}.json'), 'w', encoding='utf-8') as f:
+            json.dump(info, f, ensure_ascii=False)
+    except:
+        return
 
 
 def get_channel_context(channel_id: int) -> list:
@@ -114,7 +120,20 @@ def save_channel_context(channel_id: int, history: list):
 async def get_channel_member_list(channel):
     try:
         member_list = []
-        async for member in channel.guild.fetch_members():
+        async for member in channel.fetch_members():
+            member_list.append(member)
+
+        member_nicknames = [member.nick or member.name for member in member_list]
+
+        return member_nicknames
+    except:
+        return []
+
+
+async def get_guild_member_list(guild):
+    try:
+        member_list = []
+        async for member in guild.fetch_members():
             member_list.append(member)
 
         member_nicknames = [member.nick or member.name for member in member_list]
