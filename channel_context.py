@@ -84,7 +84,7 @@ class ChannelContext:
         if self.channel_mode == ChannelMode.GROUP:
             # 群模式下需要添加群成员列表
             self.system += '\n群成员列表:\n' + '\n'.join(await
-                                                         get_channel_member_list(channel_id=self.channel_id))
+                                                         get_channel_member_list(channel=self.channel))
 
         # 帮助命令
         if Command.check_equal(self.content, command=Command.HELP):
@@ -111,7 +111,7 @@ class ChannelContext:
 
         if Command.check_equal(self.content, Command.MEMBERS):
             # 显式获取所有的成员信息
-            member_list = await get_channel_member_list(channel_id=self.channel_id)
+            member_list = await get_channel_member_list(channel=self.channel)
             await self.send_message('\n'.join(member_list))
             return
 
