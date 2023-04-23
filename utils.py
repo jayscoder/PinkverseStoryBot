@@ -74,7 +74,7 @@ async def save_channel_info(channel):
         'type' : str(type(channel))
     }
     if isinstance(channel, TextChannel):
-        info['members'] = await get_channel_member_list(channel_id)
+        info['members'] = await get_channel_member_list(channel)
 
     makedirs(DIRECTORY_INFO)
 
@@ -108,15 +108,18 @@ def save_channel_context(channel_id: int, history: list):
 
 
 # 获取频道成员列表
-async def get_channel_member_list(channel_id: int):
-    member_list = []
+async def get_channel_member_list(channel):
+    try:
+        member_list = []
 
-    async for member in bot.get_channel(channel_id).fetch_members():
-        member_list.append(member)
+        async for member in channel.fetch_members():
+            member_list.append(member)
 
-    member_nicknames = [member.nick or member.name for member in member_list]
+        member_nicknames = [member.nick or member.name for member in member_list]
 
-    return member_nicknames
+        return member_nicknames
+    except:
+        return []
 
 
 def discord_split_contents(content: str) -> [str]:
