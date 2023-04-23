@@ -28,7 +28,7 @@ class GroupContext:
             self.channel_mode |= ChannelMode.NO_HISTORY
 
         # 判断当前应该采用哪个gpt_model
-        self.gpt_model = extract_channel_gpt_model(message.channel.name)
+        self.gpt_model = extract_channel_gpt_model(self.channel_name)
 
         # 加载历史数据
         self.history = []
