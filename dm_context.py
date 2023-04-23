@@ -189,7 +189,7 @@ assistant是user的人工智能助手'''
             total_tokens = response['usage']['total_tokens']
             current_model = response['model']
 
-            if len(total_tokens) > MAX_GPT_TOKENS:
+            if total_tokens > MAX_GPT_TOKENS:
                 response_content += f'''
     > tokens: {completion_tokens} + {prompt_tokens} = {total_tokens}
     > model: {current_model}
