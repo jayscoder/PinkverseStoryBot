@@ -117,7 +117,7 @@ def discord_split_contents(content: str) -> [str]:
         return chunks
 
 
-async def discord_send_message(source: Union[int, discord.Interaction, discord.TextChannel],
+async def discord_send_message(source: Union[int, discord.Interaction, discord.TextChannel, discord.DMChannel],
                                content: str) -> discord.Message:
     chunks = discord_split_contents(content)
     message = None
@@ -228,6 +228,7 @@ def extract_channel_name(channel) -> str:
             return channel.name
         except:
             return str(channel.id)
+
 
 def extract_channel_topic(channel) -> str:
     if isinstance(channel, DMChannel):
