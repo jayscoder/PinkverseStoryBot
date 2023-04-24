@@ -1,4 +1,6 @@
 import discord
+
+import utils
 from config import *
 from utils import *
 from channel_context import ChannelContext
@@ -44,11 +46,23 @@ async def on_message_edit(before: discord.Message, after: discord.Message):
 
 
 @tree.command(name="clear", description="清空历史")
-async def command_clear(interaction: discord.Interaction):
-    filepath = get_channel_context_path(channel_id=interaction.channel.id)
-    if os.path.exists(filepath):
-        os.remove(filepath)
-    await interaction.response.send_message('已清空历史')
+@app_commands.describe(reserve='保留多少历史项，正数表示从后往前保留，负数表示从前往后保留')
+async def command_clear(interaction: discord.Interaction, reserve: int = 0):
+    history = utils.get_channel_context(channel_id=interaction.channel.id)
+    if reserve > 0:
+        history = history[-reserve:]
+    elif reserve < 0:
+        history = history[:reserve]
+    else:
+        history = []
+
+    utils.save_channel_context(channel_id=interaction.channel.id, history=history)
+    if reserve > 0:
+        await interaction.response.send_message(f'已清空历史，并保留了后{reserve}项')
+    elif reserve < 0:
+        await interaction.response.send_message(f'已清空历史，并保留了前{reserve}项')
+    else:
+        await interaction.response.send_message('已清空历史')
 
 
 @tree.command(name="history", description="获取历史")
