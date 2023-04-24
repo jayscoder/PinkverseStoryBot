@@ -266,7 +266,7 @@ async def on_ready():
             # if channel.name == '欢迎光临！':
             # await channel.send('我上线啦')
             print(channel)
-            asyncio.create_task(save_channel_info(channel))
+            # asyncio.create_task(save_channel_info(channel))
 
 
 if __name__ == '__main__':
