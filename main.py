@@ -110,7 +110,7 @@ async def command_ask(interaction: discord.Interaction, question: str, model: st
         'content': question
     })
 
-    async with bot.get_channel(interaction.channel.id).typing():
+    async with interaction.channel.typing():
         response = await get_openai_chat_completion(
                 channel_id=interaction.channel.id,
                 history=history,
