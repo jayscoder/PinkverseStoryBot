@@ -90,7 +90,7 @@ async def command_current_model(interaction: discord.Interaction):
 
 
 @tree.command(name="ask", description="提出问题，不考虑系统")
-@app_commands.choices(size=[
+@app_commands.choices(model=[
     app_commands.Choice(name="gpt-3.5", value=GPT_MODEL_3_5),
     app_commands.Choice(name="gpt-4", value=GPT_MODEL_4),
 ])
