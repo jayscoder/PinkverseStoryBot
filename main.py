@@ -96,7 +96,7 @@ async def command_current_model(interaction: discord.Interaction):
 ])
 @app_commands.describe(question='问题', model='GPT模型')
 async def command_ask(interaction: discord.Interaction, question: str, model: str = GPT_MODEL_3_5):
-    if len(question) == '':
+    if len(question) == 0:
         await discord_send_message(source=interaction, content='问题不能为空')
         return
 
