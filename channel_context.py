@@ -14,6 +14,8 @@ class ChannelContext:
         # 来自用户发的内容
         self.from_user = message.author != bot.user
         self.from_bot = message.author == bot.user
+
+
         self.document = ''  # 文档里的内容
         self.setting = get_channel_setting(channel_id=message.channel.id)
         self.author_name = message.author.display_name or message.author.nick or message.author.name

@@ -52,8 +52,9 @@ HELP_CONTENT = '''!help: 获取当前的指令手册
 !imagine: 生成1024图片
 !long: 处理大文本，大文本需要放在文件里上传
 '''
-
-DEFAULT_GPT_MODEL = 'gpt-3.5-turbo'  # 默认是gpt-3.5
+GPT_MODEL_3_5 = 'gpt-3.5-turbo'
+GPT_MODEL_4 = 'gpt-4'
+DEFAULT_GPT_MODEL = GPT_MODEL_3_5  # 默认是gpt-3.5
 DEFAULT_TEMPERATURE = 1  # 默认温度
 
 # 默认GPT系统

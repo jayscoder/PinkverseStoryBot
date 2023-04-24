@@ -1,4 +1,6 @@
 import discord
+
+import utils
 from config import *
 from utils import *
 from channel_context import ChannelContext
@@ -43,12 +45,27 @@ async def on_message_edit(before: discord.Message, after: discord.Message):
     #     await GroupContext(after).on_message()
 
 
-@tree.command(name="clear", description="清空历史")
-async def command_clear(interaction: discord.Interaction):
-    filepath = get_channel_context_path(channel_id=interaction.channel.id)
-    if os.path.exists(filepath):
-        os.remove(filepath)
-    await interaction.response.send_message('已清空历史')
+@tree.command(name="clear", description="清除历史")
+@app_commands.describe(reserve='保留多少历史项，正数表示从后往前保留，负数表示从前往后保留')
+async def command_clear(interaction: discord.Interaction, reserve: int = 0):
+    history = utils.get_channel_context(channel_id=interaction.channel.id)
+    old_history_count = len(history)
+    if reserve > 0:
+        history = history[-reserve:]
+    elif reserve < 0:
+        history = history[:reserve]
+    else:
+        history = []
+
+    utils.save_channel_context(channel_id=interaction.channel.id, history=history)
+    if reserve > 0:
+        await interaction.response.send_message(
+                f'已清除{old_history_count - len(history)}项历史，并保留了后{len(history)}项')
+    elif reserve < 0:
+        await interaction.response.send_message(
+                f'已清除{old_history_count - len(history)}项历史，并保留了前{len(history)}项')
+    else:
+        await interaction.response.send_message(f'已清除{len(history)}项历史')
 
 
 @tree.command(name="history", description="获取历史")
@@ -72,27 +89,43 @@ async def command_current_model(interaction: discord.Interaction):
 #                                content=model)
 
 
-@tree.command(name="ask", description="提出问题，不会考虑上下文/系统，不会保存到历史")
-async def command_ask(interaction: discord.Interaction, question: str):
+@tree.command(name="ask", description="提出问题，不考虑系统")
+@app_commands.choices(size=[
+    app_commands.Choice(name="gpt-3.5", value=GPT_MODEL_3_5),
+    app_commands.Choice(name="gpt-4", value=GPT_MODEL_4),
+])
+@app_commands.describe(question='问题', model='GPT模型')
+async def command_ask(interaction: discord.Interaction, question: str, model: str = GPT_MODEL_3_5):
+    if len(question) == '':
+        await discord_send_message(source=interaction, content='问题不能为空')
+        return
+
     setting = get_channel_setting(channel_id=interaction.channel.id)
-    gpt_model = extract_channel_gpt_model(interaction.channel.name)
     temperature = setting['temperature']
     await discord_send_message(source=interaction,
-                               content=f'> {question} --model={gpt_model} --temperature={temperature}')
+                               content=f'> {question} --model={model} --temperature={temperature}')
+    history = get_channel_context(channel_id=interaction.channel.id)
+    history.append({
+        'role'   : 'user',
+        'content': question
+    })
+
     async with bot.get_channel(interaction.channel.id).typing():
         response = await get_openai_chat_completion(
                 channel_id=interaction.channel.id,
-                history=[{
-                    'role'   : 'user',
-                    'content': question
-                }],
+                history=history,
                 system='',
-                gpt_model=gpt_model,
+                gpt_model=model,
                 temperature=temperature)
     if isinstance(response, str):
         await discord_send_message(source=interaction.channel, content=response)
     else:
         response_content = extract_openai_chat_response_content(response)
+        history.append({
+            'role'   : 'assistant',
+            'content': response_content,
+        })
+        save_channel_context(channel_id=interaction.channel.id, history=history)
         await discord_send_message(source=interaction.channel,
                                    content=response_content)
 
