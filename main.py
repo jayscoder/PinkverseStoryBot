@@ -65,7 +65,7 @@ async def command_clear(interaction: discord.Interaction, reserve: int = 0):
         await interaction.response.send_message(
                 f'已清除{old_history_count - len(history)}项历史，并保留了前{len(history)}项')
     else:
-        await interaction.response.send_message(f'已清除{len(history)}项历史')
+        await interaction.response.send_message(f'已清除{old_history_count - len(history)}项历史')
 
 
 @tree.command(name="history", description="获取历史")
