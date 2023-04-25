@@ -16,7 +16,8 @@ cooper_dog_tree = app_commands.CommandTree(cooper_dog)
 
 
 def check_is_mention_cooper(message: discord.Message):
-    is_mention = message.content.lower().startswith('cooper')
+    lower = message.content.lower()
+    is_mention = lower.startswith('cooper') or lower.startswith('@cooper')
     # if len(message.mentions) > 0:
     #     if message.mentions[0].id == cooper_dog.user.id:
     #         is_mention = True
@@ -27,7 +28,8 @@ def check_is_mention_cooper(message: discord.Message):
 
 
 def check_is_mention_magi(message: discord.Message):
-    is_mention = message.content.lower().startswith('magi')
+    lower = message.content.lower()
+    is_mention = lower.startswith('magi') or lower.startswith('@magi')
     # if len(message.mentions) > 0:
     #     if message.mentions[0].id == magi_bot.user.id:
     #         is_mention = True
