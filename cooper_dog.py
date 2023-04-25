@@ -28,6 +28,7 @@ for file in os.listdir(DOG_IMAGE_DIR):
         DOG_IMAGES.append(file)
 DOG_SYSTEM += '\n'.join(DOG_IMAGES)
 
+
 # 定义bot登陆事件
 @cooper_dog.event
 async def on_ready():
@@ -46,7 +47,7 @@ async def on_message(message: discord.Message):
     if not is_mention_cooper:
         return
 
-    print(message.content)
+    print(f'{message.author.display_name}: {message.content}')
     model = extract_channel_gpt_model(message.channel.name)
 
     try:
