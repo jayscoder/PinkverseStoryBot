@@ -31,7 +31,6 @@ for file in os.listdir(DOG_IMAGE_DIR):
 
 # DOG_SYSTEM += '\n'.join(DOG_IMAGES)
 
-
 # 定义bot登陆事件
 @cooper_dog.event
 async def on_ready():
@@ -81,7 +80,7 @@ async def on_message(message: discord.Message):
                 if thought != '':
                     content += f'\n> {thought}'
 
-                # content += f" action={item['action']}"
+                content += f" image={dog_image}"
                 if os.path.exists(dog_image):
                     await message.channel.send(content=content, file=discord.File(dog_image))
                 else:
@@ -92,7 +91,6 @@ async def on_message(message: discord.Message):
         await message.channel.send(response_content)
     except Exception as e:
         await message.channel.send(f'Error {e}')
-
 
 def find_dog_image_path(image: str) -> str:
     image_path = os.path.join(DOG_IMAGE_DIR, image)
