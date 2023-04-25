@@ -81,7 +81,7 @@ async def on_message(message: discord.Message):
                 content = f"""{item['bark']}"""
                 if thought != '':
                     content += f'\n> {thought}'
-                content += f"> image={item['image']}"
+                content += f"\n> image={item['image']}"
                 if os.path.exists(dog_image):
                     await message.channel.send(content=content, file=discord.File(dog_image))
                 else:
