@@ -159,15 +159,12 @@ def discord_split_contents(content: str) -> [str]:
         return chunks
 
 
-async def discord_send_message(source: Union[int, discord.Interaction, discord.TextChannel, discord.DMChannel],
-                               content: str) -> discord.Message:
+async def discord_send_message(
+        source: Union[int, discord.Interaction, discord.TextChannel, discord.DMChannel],
+        content: str) -> discord.Message:
     chunks = discord_split_contents(content)
     message = None
-    if isinstance(source, int):
-        # channel_id
-        for chunk in chunks:
-            message = await bot.get_channel(source).send(chunk)
-    elif isinstance(source, discord.Interaction):
+    if isinstance(source, discord.Interaction):
         for chunk in chunks:
             # ephemeral=True表示只有用户自己能看到这个消息
             message = await source.response.send_message(chunk, ephemeral=False)
