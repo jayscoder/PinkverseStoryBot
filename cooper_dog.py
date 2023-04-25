@@ -34,7 +34,9 @@ DOG_SYSTEM = """你是一只可爱狗狗，你的名字叫Cooper，只会发出�
 踩
 躲
 转圈圈
-迷糊"""
+迷糊
+喂喂
+我在听"""
 
 DOG_IMAGES = []
 DOG_IMAGE_DIR = 'dogs'
