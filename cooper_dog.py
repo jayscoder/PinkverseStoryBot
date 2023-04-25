@@ -119,7 +119,7 @@ async def on_message(message: discord.Message):
             await message.channel.send(content=content)
 
         # 没有识别出来的话，就直接发送内容
-        await message.channel.send(response_content)
+        # await message.channel.send(response_content)
     except Exception as e:
         await message.channel.send(f'Error {e}')
 
