@@ -26,12 +26,11 @@ def extract_json(content: str) -> list:
 
 
 if __name__ == '__main__':
-    sample_text = '''dadada{"name": 'hello'}下面是生成的内容
-    {"action": "严肃",
-    "button_sequence" : ["钱", '一起', '干活'],
-    "voice":"努力工作，加班挣更多的钱！",
-    "thought_emoji":"💰💰",
-    "thought_text":"想要更多的钱"}
-    （提示：请注意尊重自己和他人的合法权益及规则，不要做出违法违规的行为）'''
+    sample_text = '''{
+"bark":"汪汪！"
+"thought_emoji":"🤔"
+"thought_text":"吃饭？什么口味的？"
+"image": "疑问"
+}'''
 
     print(extract_json(sample_text))
