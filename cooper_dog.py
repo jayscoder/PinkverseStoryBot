@@ -6,6 +6,7 @@ from discord import app_commands
 from bots import *
 import os
 from extract_json import extract_json
+import random
 
 DOG_SYSTEM = """你是一只可爱狗狗，你的名字叫Cooper，只会发出汪汪叫的bark。
 你需要听主人说了什么，然后作出一个相应的回复
@@ -44,6 +45,8 @@ DOG_IMAGE_DIR = 'dogs'
 for file in os.listdir(DOG_IMAGE_DIR):
     if file.endswith('.gif'):
         DOG_IMAGES.append(file)
+
+
 # DOG_SYSTEM += '\n'.join(DOG_IMAGES)
 
 
@@ -109,8 +112,10 @@ def find_dog_image_path(image: str) -> str:
     image_path = os.path.join(DOG_IMAGE_DIR, image)
     if os.path.exists(image_path):
         return image_path
-
+    match_images = []
     for dog_image in DOG_IMAGES:
         if image in dog_image:
-            return os.path.join(DOG_IMAGE_DIR, dog_image)
+            match_images.append(os.path.join(DOG_IMAGE_DIR, dog_image))
+    if len(match_images) > 0:
+        return random.choice(match_images)
     return ''
