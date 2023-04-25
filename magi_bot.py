@@ -331,7 +331,7 @@ class MagiChannelContext:
             # 狗发的话直接跳过
             return
 
-        if self.channel_mode == ChannelMode.GROUP:
+        if self.channel_mode & ChannelMode.GROUP:
             # 群模式下需要添加群成员列表
             self.system += '\n群成员列表:\n' + '\n'.join(await
                                                          get_channel_member_list(channel=self.channel))
@@ -396,7 +396,7 @@ class MagiChannelContext:
 
         if self.from_user:
             # 用户发的普通内容
-            if self.channel_mode == ChannelMode.GROUP:
+            if self.channel_mode & ChannelMode.GROUP:
                 self.content = f'{self.message.author.name}: {self.content}'
 
         if Command.check_startswith(self.content, Command.IMAGINE):
