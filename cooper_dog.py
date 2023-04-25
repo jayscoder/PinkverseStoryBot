@@ -18,7 +18,23 @@ DOG_SYSTEM = """你是一只可爱狗狗，你的名字叫Cooper，只会发出�
 "image": ""
 }
 如果不确定回复什么，就歪头并发汪汪叫
-可选图片列表："""
+可选图片列表：
+难过
+不高兴
+疑问
+生气
+不稳定
+开心
+兴奋
+惊讶
+快点
+无聊
+稳定
+警觉
+踩
+躲
+转圈圈
+迷糊"""
 
 DOG_IMAGES = []
 DOG_IMAGE_DIR = 'dogs'
@@ -26,7 +42,7 @@ DOG_IMAGE_DIR = 'dogs'
 for file in os.listdir(DOG_IMAGE_DIR):
     if file.endswith('.gif'):
         DOG_IMAGES.append(file)
-DOG_SYSTEM += '\n'.join(DOG_IMAGES)
+# DOG_SYSTEM += '\n'.join(DOG_IMAGES)
 
 
 # 定义bot登陆事件
