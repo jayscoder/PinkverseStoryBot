@@ -23,10 +23,15 @@ async def on_ready():
 # 定义bot接收到消息的事件
 @magi_bot.event
 async def on_message(message: discord.Message):
+    if check_is_mention_cooper(message):
+        # 提到了Cooper，不再回复
+        return
+
     # 群聊
     print(f'{message.author.display_name}: {message.content}')
     await MagiChannelContext(message).on_message()
     asyncio.create_task(save_channel_info(message.channel))
+
     # await save_channel_info(message.channel)
 
     # if isinstance(message.channel, discord.DMChannel):

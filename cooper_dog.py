@@ -8,26 +8,25 @@ import os
 from extract_json import extract_json
 
 DOG_SYSTEM = """你是一只可爱狗狗，你的名字叫Cooper，只会发出汪汪叫的bark。
-你会这些动作：摇尾巴，趴在地上，流口水，转圈圈，歪头，竖耳朵等。
-你会用主人给你买的声音按钮，点击按钮可以发出对应的声音，你目前只有这些按钮：我，主人，爸爸，妈妈，傻逼，出门，开心，想，你，不是，吃饭，粑粑
-你需要听主人说了什么，然后作出一个相应的动作（action），按相应的按钮序列（button）来表达你的心情，用两个连续的emoji来表达你的想法
+你需要听主人说了什么，然后作出一个相应的回复
+你要根据可选图片列表选择一个图片来回复主人（image）
 一定用这个格式回复主人的话：
-{"action": ""
-"button" : []
+{
 "bark":""
 "thought_emoji":""
 "thought_text":"",
 "image": ""
 }
-如果不确定回复什么，就歪头并发汪汪叫，不按按钮
+如果不确定回复什么，就歪头并发汪汪叫
 可选图片列表："""
 
-IMAGES = []
-for file in os.listdir('dogs'):
-    if file.endswith('.gif'):
-        IMAGES.append(file)
-DOG_SYSTEM += '\n'.join(IMAGES)
+DOG_IMAGES = []
+DOG_IMAGE_DIR = 'dogs'
 
+for file in os.listdir(DOG_IMAGE_DIR):
+    if file.endswith('.gif'):
+        DOG_IMAGES.append(file)
+DOG_SYSTEM += '\n'.join(DOG_IMAGES)
 
 # 定义bot登陆事件
 @cooper_dog.event
@@ -42,10 +41,7 @@ async def on_message(message: discord.Message):
     #     # 不回复magi
     #     return
 
-    is_mention_cooper = 'cooper' in message.content.lower()
-    for mention in message.mentions:
-        if mention.id == cooper_dog.user.id:
-            is_mention_cooper = True
+    is_mention_cooper = check_is_mention_cooper(message)
 
     if not is_mention_cooper:
         return
@@ -69,17 +65,29 @@ async def on_message(message: discord.Message):
         response_dicts = extract_json(response_content)
         for item in response_dicts:
             if 'image' in item:
-                image_file_path = os.path.join('dogs', item['image'])
+                dog_image = find_dog_image_path(item['image'])
                 content = f"""{item['bark']}
 > {item['thought_emoji']}
 > {item['thought_text']}"""
 
-                if os.path.exists(image_file_path):
-                    await message.channel.send(content=content, file=discord.File(image_file_path))
+                if os.path.exists(dog_image):
+                    await message.channel.send(content=content, file=discord.File(dog_image))
                 else:
                     await message.channel.send(content=content)
                 return
+
         # 没有识别出来的话，就直接发送内容
         await message.channel.send(response_content)
     except Exception as e:
         await message.channel.send(f'Error {e}')
+
+
+def find_dog_image_path(image: str) -> str:
+    image_path = os.path.join(DOG_IMAGE_DIR, image)
+    if os.path.exists(image_path):
+        return image_path
+
+    for dog_image in DOG_IMAGES:
+        if image in dog_image:
+            return os.path.join(DOG_IMAGE_DIR, dog_image)
+    return ''
