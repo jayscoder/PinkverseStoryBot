@@ -96,9 +96,10 @@ async def on_message(message: discord.Message):
 
 
 def find_dog_image_path(image: str) -> str:
-    image_path = os.path.join(DOG_IMAGE_DIR, image)
+    image_path = os.path.join(DOG_IMAGE_DIR, image + '.gif')
     if os.path.exists(image_path):
         return image_path
+
     match_images = []
     for dog_image in DOG_IMAGES:
         if image in dog_image:
