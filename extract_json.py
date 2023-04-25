@@ -27,10 +27,10 @@ def extract_json(content: str) -> list:
 
 if __name__ == '__main__':
     sample_text = '''{
-"bark":"汪汪！"
-"thought_emoji":"🤔"
-"thought_text":"吃饭？什么口味的？"
-"image": "疑问"
+"bark":"",
+"thought_emoji":"🤔🤨",
+"action": "可疑嗅闻探查",
+"button_sequence":["你", "说", "什么"],
 }'''
 
     print(extract_json(sample_text))
