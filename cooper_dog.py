@@ -89,12 +89,13 @@ async def on_message(message: discord.Message):
             return
 
         response_content = extract_openai_chat_response_content(response)
-        response_dict = extract_yaml(response_content)
-
+        print(response_content)
         for choice in response.choices:
             history.append(choice.message)
 
         cooper_dog_history[message.channel.id] = history
+
+        response_dict = extract_yaml(response_content)
 
         action = response_dict['action']
         dog_image = find_dog_image_path(response_dict['action'])
