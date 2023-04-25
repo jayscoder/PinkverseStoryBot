@@ -73,6 +73,7 @@ async def on_message(message: discord.Message):
         response_dicts = extract_json(response_content)
         for item in response_dicts:
             if 'action' in item:
+                action = item['action']
                 dog_image = find_dog_image_path(item['action'])
                 content = f"""{item['bark']}"""
 
@@ -82,7 +83,7 @@ async def on_message(message: discord.Message):
                     content += ' ' + thought
                     # content += f'\n> {thought}'
 
-                # content += f" image={dog_image}"
+                content += f"\n> action={action} image={dog_image}"
                 if os.path.exists(dog_image):
                     await message.channel.send(content=content, file=discord.File(dog_image))
                 else:
