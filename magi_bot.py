@@ -23,8 +23,8 @@ async def on_ready():
 # 定义bot接收到消息的事件
 @magi_bot.event
 async def on_message(message: discord.Message):
-    if check_is_mention_cooper(message):
-        # 提到了Cooper，不再回复
+    if check_is_mention_cooper(message) and not check_is_mention_magi(message):
+        # 提到了Cooper且没有提到Magi，不再回复
         return
 
     # 群聊
