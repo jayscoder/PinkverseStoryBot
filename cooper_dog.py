@@ -7,12 +7,13 @@ from bots import *
 import os
 from extract_json import extract_json
 import random
+from collections import defaultdict
 
 DOG_SYSTEM = """你是一只狗狗，你的名字叫Cooper，只会汪汪叫。
 你需要听主人说了什么，然后从动作列表中作出一个相应的动作回应主人（action），按相应的按钮序列（button_sequence）来尝试表达你想说的话，用两个emoji来加强表达你的心情和想法（thought_emoji）
 你会用主人给你买的声音按钮，点击按钮可以发出对应的声音，你目前只有这些按钮(button)：我，主人，爸爸，妈妈，傻逼，出门，开心，想，你，不是，吃饭，粑粑
 如果不确定回复什么，就歪头并汪汪叫，不按按钮
-action动作列表：开心吃骨头，无聊摆烂躺平，拉粑粑发抖，不高兴钻盒子，超生气踩枕头，生气踩枕头，兴奋叼绳子出去玩，生气拆家打翻抽纸，发呆流鼻涕，惊吓躲到墙后，游泳划水，站立不稳昏倒，惊讶张大嘴，警觉跑远趴下，开心跺脚，开心转一圈，从不开心变开心，兴奋连续跺脚，可疑嗅闻探查，难过地哭，期待按铃呼叫，开心飞跑，凌乱吹风，溜了离家出走行李，迷糊困睡觉晚安，摇尾巴，惊讶，转一圈休息，晚安睡觉开心，晚安睡觉枕头平静，严肃叫，慵懒地听，趴着难过，无聊乱走，兴奋跳，凶龇牙，咬骨头护食龇牙，靠近竖耳朵，躺平休息脏，开心转圈圈，听到后难过
+action是动作列表：开心吃骨头，无聊摆烂躺平，拉粑粑发抖，不高兴钻盒子，超生气踩枕头，生气踩枕头，兴奋叼绳子出去玩，生气拆家打翻抽纸，发呆流鼻涕，惊吓躲到墙后，游泳划水，站立不稳昏倒，惊讶张大嘴，警觉跑远趴下，开心跺脚，开心转一圈，从不开心变开心，兴奋连续跺脚，可疑嗅闻探查，难过地哭，期待按铃呼叫，开心飞跑，凌乱吹风，溜了离家出走行李，迷糊困睡觉晚安，摇尾巴，惊讶，转一圈休息，晚安睡觉开心，晚安睡觉枕头平静，严肃叫，慵懒地听，趴着难过，无聊乱走，兴奋跳，凶龇牙，咬骨头护食龇牙，靠近竖耳朵，躺平休息脏，开心转圈圈，听到后难过
 一定用这个格式回复主人的话：
 {
 "bark":"",
@@ -39,6 +40,9 @@ async def on_ready():
     print('Cooper Logged in as {0.user}'.format(cooper_dog))
 
 
+cooper_dog_history = defaultdict(list)  # cooper狗的记忆
+
+
 @cooper_dog.event
 async def on_message(message: discord.Message):
     # if message.author == magi_bot.user:
@@ -50,6 +54,14 @@ async def on_message(message: discord.Message):
     if not is_mention_cooper:
         return
 
+    history = cooper_dog_history[message.channel.id]
+
+    if len(history) > 7:
+        history = history[-7:]  # 保留最后七条，狗只能记住七句话
+    history.append({
+        'role'   : 'user',
+        'content': message.content
+    })
     print(f'Cooper {message.author.display_name}: {message.content}')
     model = extract_channel_gpt_model(message.channel.name)
 
@@ -57,10 +69,7 @@ async def on_message(message: discord.Message):
         async with message.channel.typing():
             response = await get_openai_chat_completion(
                     channel_id=message.channel.id,
-                    history=[{
-                        'role'   : 'user',
-                        'content': message.content
-                    }],
+                    history=history,
                     system=DOG_SYSTEM,
                     gpt_model=model,
                     temperature=1)
@@ -71,6 +80,12 @@ async def on_message(message: discord.Message):
 
         response_content = extract_openai_chat_response_content(response)
         response_dicts = extract_json(response_content)
+
+        for choice in response.choices:
+            history.append(choice.message)
+
+        cooper_dog_history[message.channel.id] = history
+
         for item in response_dicts:
             if 'action' in item:
                 action = item['action']
@@ -88,6 +103,7 @@ async def on_message(message: discord.Message):
                     await message.channel.send(content=content, file=discord.File(dog_image))
                 else:
                     await message.channel.send(content=content)
+
                 return
 
         # 没有识别出来的话，就直接发送内容
