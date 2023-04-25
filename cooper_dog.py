@@ -62,6 +62,10 @@ async def on_message(message: discord.Message):
                     gpt_model=model,
                     temperature=1)
 
+        if isinstance(response, str):
+            await discord_send_message(source=message.channel, content=response)
+            return
+
         response_content = extract_openai_chat_response_content(response)
         response_dicts = extract_json(response_content)
         for item in response_dicts:
