@@ -95,7 +95,12 @@ async def on_message(message: discord.Message):
 
         cooper_dog_history[message.channel.id] = history
 
-        response_dict = extract_yaml(response_content)
+        try:
+            response_dict = extract_yaml(response_content)
+        except Exception as e:
+            await message.channel.send(response_content)
+            await message.channel.send(f'Error: {e}')
+            return
 
         action = response_dict['action']
         dog_image = find_dog_image_path(response_dict['action'])
