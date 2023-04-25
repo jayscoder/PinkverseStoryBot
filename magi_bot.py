@@ -1,8 +1,5 @@
-import discord
 import utils
-from config import *
 from utils import *
-from discord import app_commands
 from bots import *
 
 
@@ -10,13 +7,13 @@ from bots import *
 @magi_bot.event
 async def on_ready():
     await magi_bot_tree.sync()
-    print('Logged in as {0.user}'.format(magi_bot))
-    for guild in magi_bot.guilds:
-        for channel in guild.text_channels:
-            # if channel.name == '欢迎光临！':
-            # await channel.send('我上线啦')
-            print(channel)
-            # asyncio.create_task(save_channel_info(channel))
+    print('Magi Logged in as {0.user}'.format(magi_bot))
+    # for guild in magi_bot.guilds:
+    #     for channel in guild.text_channels:
+    #         # if channel.name == '欢迎光临！':
+    #         # await channel.send('我上线啦')
+    #         print(channel)
+    #         # asyncio.create_task(save_channel_info(channel))
 
 
 # 如何使用斜杠命令
@@ -28,7 +25,7 @@ async def on_ready():
 async def on_message(message: discord.Message):
     # 群聊
     print(f'{message.author.display_name}: {message.content}')
-    await MagiChannelContext(message, bot=magi_bot).on_message()
+    await MagiChannelContext(message).on_message()
     asyncio.create_task(save_channel_info(message.channel))
     # await save_channel_info(message.channel)
 

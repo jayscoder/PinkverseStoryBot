@@ -29,6 +29,13 @@ for file in os.listdir('dogs'):
 DOG_SYSTEM += '\n'.join(IMAGES)
 
 
+# 定义bot登陆事件
+@cooper_dog.event
+async def on_ready():
+    await cooper_dog_tree.sync()
+    print('Cooper Logged in as {0.user}'.format(cooper_dog))
+
+
 @cooper_dog.event
 async def on_message(message: discord.Message):
     # if message.author == magi_bot.user:
