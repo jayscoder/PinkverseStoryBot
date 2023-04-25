@@ -67,10 +67,10 @@ async def on_message(message: discord.Message):
         for item in response_dicts:
             if 'image' in item:
                 dog_image = find_dog_image_path(item['image'])
-                content = f"""{item['bark']}
-> {item['thought_emoji']}
-> {item['thought_text']}"""
-
+                content = f"""{item['bark']}"""
+                if item['thought_text'] or item['thought_emoji']:
+                    content += f"""
+> {item['thought_emoji'] + item['thought_text']}"""
                 if os.path.exists(dog_image):
                     await message.channel.send(content=content, file=discord.File(dog_image))
                 else:
