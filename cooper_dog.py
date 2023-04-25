@@ -11,13 +11,14 @@ import random
 DOG_SYSTEM = """你是一只狗狗，你的名字叫Cooper，只会发出汪汪叫的bark。
 你需要听主人说了什么，然后作出一个相应的回复，如果不确定回复什么，就歪头并汪汪叫
 你要从图片列表中选择一个图片来回复主人（image）
-thought_emoji要包含多个emoji来表示你的心情
-thought_text表示你当前的想法
+用emoji来表示你的表情
+thought表示你当前的想法文字
 一定用这个格式回复主人的话：
 {
 "bark":"",
-"thought_emoji":"",
-"thought_text":"",
+"emoji_1":"",
+"emoji_2":"",
+"thought":"",
 "image": ""
 }
 图片列表：难过,不高兴,疑问,生气,不稳定,开心,兴奋,惊讶,快点,无聊,稳定,警觉,踩,躲,转圈圈,迷糊,喂喂,我在听,咬,便便,昏倒,溜了,稳定,打翻,摆烂,呆,划水,可疑,吧唧,什么,超难过,emo,出去玩"""
@@ -75,10 +76,10 @@ async def on_message(message: discord.Message):
         for item in response_dicts:
             if 'image' in item:
                 dog_image = find_dog_image_path(item['image'])
+                thought = (item['emoji_1'] or '') + (item['emoji_2'] or '') + item['thought'] or ''
                 content = f"""{item['bark']}"""
-                if item['thought_text'] or item['thought_emoji']:
-                    content += f"""
-> {item['thought_emoji'] + item['thought_text']}"""
+                if thought != '':
+                    content += f'\n> {thought}'
                 if os.path.exists(dog_image):
                     await message.channel.send(content=content, file=discord.File(dog_image))
                 else:
