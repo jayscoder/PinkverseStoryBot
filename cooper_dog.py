@@ -8,21 +8,18 @@ import os
 from extract_json import extract_json
 import random
 
-DOG_SYSTEM = """你是一只狗狗，你的名字叫Cooper，只会发出汪汪叫的bark。
-你需要听主人说了什么，然后作出一个相应的回复，如果不确定回复什么，就歪头并汪汪叫
-你要从图片列表中选择一个图片来回复主人（image）
-emoji_1来表示你心情
-emoji_2表示你的表情或动作
-thought表示你当前的想法文字
+DOG_SYSTEM = """你是一只狗狗，你的名字叫Cooper，只会汪汪叫。
+你需要听主人说了什么，然后从动作列表中作出一个相应的动作回应主人（action），按相应的按钮序列（button_sequence）来尝试表达你想说的话，用两个emoji来加强表达你的心情和想法（thought_emoji）
+你会用主人给你买的声音按钮，点击按钮可以发出对应的声音，你目前只有这些按钮(button)：我，主人，爸爸，妈妈，傻逼，出门，开心，想，你，不是，吃饭，粑粑
+如果不确定回复什么，就歪头并汪汪叫，不按按钮
 一定用这个格式回复主人的话：
 {
 "bark":"",
-"emoji_1":"",
-"emoji_2":"",
-"thought":"",
-"image": ""
+"thought_emoji":"",
+"action": "",
+"button_sequence":[]
 }
-图片列表：难过,不高兴,疑问,生气,不稳定,开心,兴奋,惊讶,快点,无聊,稳定,警觉,踩,躲,转圈圈,迷糊,喂喂,我在听,咬,便便,昏倒,溜了,稳定,打翻,摆烂,呆,划水,可疑,吧唧,什么,超难过,emo,出去玩"""
+动作列表：开心吃骨头，无聊摆烂躺平，拉粑粑发抖，不高兴钻盒子，超生气踩枕头，生气踩枕头，兴奋叼绳子出去玩，生气拆家打翻抽纸，发呆流鼻涕，惊吓躲到墙后，游泳划水，站立不稳昏倒，惊讶张大嘴，警觉跑远趴下，开心跺脚，开心转一圈，从不开心变开心，兴奋连续跺脚，可疑嗅闻探查，难过地哭，期待按铃呼叫，开心飞跑，凌乱吹风，溜了离家出走行李，迷糊困睡觉晚安，摇尾巴，惊讶，转一圈休息，晚安睡觉开心，晚安睡觉枕头平静，严肃叫，慵懒地听，趴着难过，无聊乱走，兴奋跳，凶龇牙，咬骨头护食龇牙，靠近竖耳朵，躺平休息脏，开心转圈圈，听到后难过"""
 
 DOG_IMAGES = []
 DOG_IMAGE_DIR = 'dogs'
@@ -75,13 +72,16 @@ async def on_message(message: discord.Message):
         response_content = extract_openai_chat_response_content(response)
         response_dicts = extract_json(response_content)
         for item in response_dicts:
-            if 'image' in item:
-                dog_image = find_dog_image_path(item['image'])
-                thought = (item['emoji_1'] or '') + (item['emoji_2'] or '') + item['thought'] or ''
+            if 'action' in item:
+                dog_image = find_dog_image_path(item['action'])
                 content = f"""{item['bark']}"""
+
+                thought = (item['thought_emoji'] or '') + ''.join(item['button_sequence'] or [])
+
                 if thought != '':
                     content += f'\n> {thought}'
-                content += f" image={item['image']}"
+
+                # content += f" action={item['action']}"
                 if os.path.exists(dog_image):
                     await message.channel.send(content=content, file=discord.File(dog_image))
                 else:
