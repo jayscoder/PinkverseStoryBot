@@ -79,9 +79,10 @@ async def on_message(message: discord.Message):
                 thought = (item['thought_emoji'] or '') + ''.join(item['button_sequence'] or [])
 
                 if thought != '':
-                    content += f'\n> {thought}'
+                    content += ' ' + thought
+                    # content += f'\n> {thought}'
 
-                content += f" image={dog_image}"
+                # content += f" image={dog_image}"
                 if os.path.exists(dog_image):
                     await message.channel.send(content=content, file=discord.File(dog_image))
                 else:
