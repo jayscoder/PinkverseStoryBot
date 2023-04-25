@@ -76,7 +76,7 @@ async def on_message(message: discord.Message):
                 dog_image = find_dog_image_path(item['action'])
                 content = f"""{item['bark']}"""
 
-                thought = (item['thought_emoji'] or '') + ''.join(item['button_sequence'] or [])
+                thought = (item['thought_emoji'] or '') + ' ' + ','.join(item['button_sequence'] or [])
 
                 if thought != '':
                     content += ' ' + thought
