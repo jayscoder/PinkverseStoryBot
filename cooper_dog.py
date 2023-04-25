@@ -65,7 +65,7 @@ async def on_message(message: discord.Message):
     if not is_mention_cooper:
         return
 
-    print(f'{message.author.display_name}: {message.content}')
+    print(f'Cooper {message.author.display_name}: {message.content}')
     model = extract_channel_gpt_model(message.channel.name)
 
     try:

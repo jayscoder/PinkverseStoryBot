@@ -28,7 +28,7 @@ async def on_message(message: discord.Message):
         return
 
     # 群聊
-    print(f'{message.author.display_name}: {message.content}')
+    print(f'Magi {message.author.display_name}: {message.content}')
     await MagiChannelContext(message).on_message()
     asyncio.create_task(save_channel_info(message.channel))
 
