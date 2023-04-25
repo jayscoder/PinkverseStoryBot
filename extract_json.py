@@ -20,7 +20,7 @@ sample_text = '''dadada{"name": 'hello'}下面是生成的内容
 
 # 使用正则表达式匹配JSON字符串
 
-def extract_json(content: str) -> list[dict]:
+def extract_json(content: str) -> list:
     json_matches = re.findall(r'\{[\s\S]*?\}', sample_text)
     results = []
     for json_str in json_matches:
