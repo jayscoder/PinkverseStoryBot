@@ -211,19 +211,20 @@ async def command_repeat(interaction: discord.Interaction, content: str, count: 
     temperature = setting['temperature']
 
     await discord_send_message(source=interaction,
-                               content=f'> {content} --model={model} --temperature={temperature}')
+                               content=f'> {content} --count={count} --model={model} --reserve_history={reserve_history} --temperature={temperature}')
 
     system = extract_channel_topic(interaction.channel)
     history = get_channel_context(channel_id=interaction.channel.id)
 
     for i in range(count):
+
         history.append({
             'role'   : 'user',
             'content': content
         })
         await discord_send_message(
                 source=interaction.channel,
-                content=content)
+                content=f'> {content}')
 
         history = clear_history_by_reserve(history, reserve=reserve_history)
         async with interaction.channel.typing():
@@ -237,6 +238,7 @@ async def command_repeat(interaction: discord.Interaction, content: str, count: 
         if isinstance(response, str):
             await discord_send_message(source=interaction.channel, content=response)
             return
+
         response_content = extract_openai_chat_response_content(response)
         history.append({
             'role'   : 'assistant',
@@ -338,7 +340,7 @@ async def command_auto(
         response_content = extract_openai_chat_response_content(response)
         history.append({
             'role'   : 'user',
-            'content': response_content,
+            'content': f'> {response_content}',
         })
         save_channel_context(channel_id=interaction.channel.id, history=history)
         await discord_send_message(source=interaction.channel,
