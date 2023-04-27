@@ -123,7 +123,7 @@ async def command_survey(interaction: discord.Interaction, subject: str, count: 
 
     response_content = extract_openai_chat_response_content(response)
     await discord_send_message(source=interaction.channel,
-                               content=response_content)
+                               content=f'```\n{response_content}\n```')
 
     questions = response_content.split('\n')
     for question in questions:
