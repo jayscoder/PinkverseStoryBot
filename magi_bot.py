@@ -104,8 +104,8 @@ async def command_current_model(interaction: discord.Interaction):
 ])
 @app_commands.describe(subject="主题", count="问答次数", model='GPT模型')
 async def command_survey(interaction: discord.Interaction, subject: str, count: int = 10, model: str = GPT_MODEL_3_5):
-    content = f'> 关于“{subject}”，请你从不同的角度或关联的领域，提出{count}个我可能感兴趣的问题（要帮助我快速了解这个主题）:'
-    await discord_send_message(source=interaction, content=f'# {content}')
+    content = f'关于“{subject}”，请你从不同的角度或关联的领域，提出{count}个我可能感兴趣的问题（要帮助我快速了解这个主题）:'
+    await discord_send_message(source=interaction, content=f'> {content}')
     setting = get_channel_setting(channel_id=interaction.channel.id)
     temperature = setting['temperature']
 
