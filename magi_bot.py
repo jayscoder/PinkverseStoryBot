@@ -106,10 +106,10 @@ async def command_current_model(interaction: discord.Interaction):
 async def command_survey(
         interaction: discord.Interaction,
         subject: str,
-        system='',
+        system: str = '',
         question_count: int = 10,
         model: str = GPT_MODEL_3_5):
-    await discord_send_message(source=interaction, content=f'{subject} --question_count={question_count} model={model}')
+    await discord_send_message(source=interaction, content=f'{subject} --question_count={question_count} --model={model} --system={system}')
 
     setting = get_channel_setting(channel_id=interaction.channel.id)
     temperature = setting['temperature']
