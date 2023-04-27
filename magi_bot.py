@@ -146,7 +146,7 @@ async def command_survey(interaction: discord.Interaction, subject: str, count: 
             return
         response_content = extract_openai_chat_response_content(response)
         await discord_send_message(source=interaction.channel,
-                                   content=response_content)
+                                   content=f'```\n{response_content}\n```')
 
 
 @magi_bot_tree.command(name="ask", description="提出问题，不考虑系统")
