@@ -123,7 +123,7 @@ async def command_survey(
     async with interaction.channel.typing():
         response = await get_openai_chat_completion(
                 channel_id=interaction.channel.id,
-                history=[{ 'role': 'user', 'content': content }],
+                history=[{ 'role': ROLE_USER, 'content': content }],
                 system=system,
                 gpt_model=model,
                 temperature=temperature)
@@ -142,7 +142,7 @@ async def command_survey(
     async with interaction.channel.typing():
         response = await get_openai_chat_completion(
                 channel_id=interaction.channel.id,
-                history=[{ 'role': 'user', 'content': content }],
+                history=[{ 'role': ROLE_USER, 'content': content }],
                 system=system + '\n' + subject_intro,
                 gpt_model=model,
                 temperature=temperature)
@@ -170,7 +170,7 @@ async def command_survey(
         async with interaction.channel.typing():
             response = await get_openai_chat_completion(
                     channel_id=interaction.channel.id,
-                    history=[{ 'role': 'user', 'content': question }],
+                    history=[{ 'role': ROLE_USER, 'content': question }],
                     system=system + '\n' + subject_intro,
                     gpt_model=model,
                     temperature=temperature)
@@ -200,7 +200,7 @@ async def command_ask(interaction: discord.Interaction, question: str, model: st
                                content=f'> {question} --model={model} --temperature={temperature}')
     history = get_channel_context(channel_id=interaction.channel.id)
     history.append({
-        'role'   : 'user',
+        'role'   : ROLE_USER,
         'content': question
     })
 
@@ -216,7 +216,7 @@ async def command_ask(interaction: discord.Interaction, question: str, model: st
     else:
         response_content = extract_openai_chat_response_content(response)
         history.append({
-            'role'   : 'assistant',
+            'role'   : ROLE_ASSISTANT,
             'content': response_content,
         })
         save_channel_context(channel_id=interaction.channel.id, history=history)
@@ -252,7 +252,7 @@ async def command_repeat(
 
     for i in range(count):
         history.append({
-            'role'   : 'user',
+            'role'   : ROLE_USER,
             'content': content
         })
 
@@ -275,7 +275,7 @@ async def command_repeat(
 
         response_content = extract_openai_chat_response_content(response)
         history.append({
-            'role'   : 'assistant',
+            'role'   : ROLE_ASSISTANT,
             'content': response_content,
         })
         save_channel_context(channel_id=interaction.channel.id, history=history)
@@ -320,7 +320,7 @@ async def command_auto(
 
     history = get_channel_context(channel_id=interaction.channel.id)
     history.append({
-        'role'   : 'user',
+        'role'   : ROLE_USER,
         'content': content
     })
     cooper_channel = cooper_dog.get_channel(interaction.channel.id)
@@ -346,7 +346,7 @@ async def command_auto(
             response_content += '\n\n' + magi_append
 
         history.append({
-            'role'   : 'assistant',
+            'role'   : ROLE_ASSISTANT,
             'content': response_content,
         })
 
@@ -357,19 +357,19 @@ async def command_auto(
         # Cooper模拟用户
         cooper_history = []
         for h in history:
-            if h['role'] == 'user':
+            if h['role'] == ROLE_USER:
                 cooper_history.append({
-                    'role'   : 'assistant',
+                    'role'   : ROLE_ASSISTANT,
                     'content': h['content']
                 })
-            elif h['role'] == 'assistant':
+            elif h['role'] == ROLE_ASSISTANT:
                 cooper_history.append({
-                    'role'   : 'user',
+                    'role'   : ROLE_USER,
                     'content': h['content']
                 })
             else:
                 cooper_history.append({
-                    'role'   : 'system',
+                    'role'   : ROLE_SYSTEM,
                     'content': h['content']
                 })
 
@@ -392,7 +392,7 @@ async def command_auto(
             response_content += '\n\n' + cooper_append
 
         history.append({
-            'role'   : 'user',
+            'role'   : ROLE_USER,
             'content': response_content,
         })
         save_channel_context(channel_id=interaction.channel.id, history=history)
@@ -700,7 +700,7 @@ class MagiChannelContext:
 
                 if is_summary:
                     # 归纳整理
-                    self.history = [{ 'role': 'system', 'content': response_content }]
+                    self.history = [{ 'role': ROLE_SYSTEM, 'content': response_content }]
 
                 completion_tokens = response['usage']['completion_tokens']
                 prompt_tokens = response['usage']['prompt_tokens']

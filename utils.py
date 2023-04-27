@@ -225,13 +225,13 @@ async def get_openai_chat_completion(
         post_messages = list(history)
         if system != '':
             post_messages = [{
-                'role'   : 'system',
+                'role'   : ROLE_SYSTEM,
                 'content': system
             }] + post_messages
 
         loop = asyncio.get_running_loop()
         response = await loop.run_in_executor(None, call, post_messages)
-
+        print(response)
         for choice in response.choices:
             post_messages.append(choice.message)
         if save_data:

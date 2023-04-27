@@ -62,7 +62,7 @@ async def on_message(message: discord.Message):
 
     if len(history) > 7:
         history = history[-7:]  # 保留最后七条，狗只能记住七句话
-    history.append({ 'role': 'user', 'content': message.content })
+    history.append({ 'role': ROLE_USER, 'content': message.content })
     print(f'Cooper {message.author.display_name}: {message.content}')
     model = extract_channel_gpt_model(message.channel.name)
 

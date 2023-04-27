@@ -28,6 +28,7 @@ def switch_openai_key():
     openai_api_key_index = (openai_api_key_index + 1) % len(OPENAI_API_KEYS)
     openai.api_key = OPENAI_API_KEYS[openai_api_key_index]
 
+
 # 全局配置
 MAX_GPT_TOKENS = 10000  # GPT最多上传10000个字符
 MAX_DISCORD_TOKENS = 2000  # discord一次最多可以发送2000个字符的消息
@@ -133,3 +134,9 @@ class ChannelMode(Flag):
     DEFAULT = auto()  # 默认频道类型
     GROUP = auto()  # GROUP频道类型
     NO_HISTORY = auto()  # 无上下文历史频道类型
+
+
+# ROLE_SYSTEM = 'system'
+ROLE_SYSTEM = 'user'
+ROLE_USER = 'user'
+ROLE_ASSISTANT = 'assistant'
