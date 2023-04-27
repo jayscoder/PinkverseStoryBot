@@ -120,6 +120,7 @@ async def command_survey(interaction: discord.Interaction, subject: str, count: 
     if isinstance(response, str):
         await discord_send_message(source=interaction.channel, content=response)
         return
+
     response_content = extract_openai_chat_response_content(response)
     await discord_send_message(source=interaction.channel,
                                content=response_content)
@@ -244,15 +245,26 @@ async def command_repeat(interaction: discord.Interaction, content: str, count: 
                 content=response_content)
 
 
-@magi_bot_tree.command(name="recursive", description="让AI来自动替你回复AI，重复多次")
+@magi_bot_tree.command(name="recursive", description="让AI来自动替你回复，重复多次")
 @app_commands.choices(model=[
     app_commands.Choice(name="gpt-3.5", value=GPT_MODEL_3_5),
     app_commands.Choice(name="gpt-4", value=GPT_MODEL_4),
 ])
-@app_commands.describe(content='启动内容', count='重复次数', model='GPT模型',
-                       reserve_history='保留多少历史项，正数表示从后往前保留，负数表示从前往后保留')
-async def command_recursive(interaction: discord.Interaction, content: str, count: int, model: str = GPT_MODEL_3_5,
-                            reserve_history: int = 7):
+@app_commands.describe(
+        content='启动内容',
+        count='重复次数',
+        model='GPT模型',
+        reserve_history='保留多少历史项，正数表示从后往前保留，负数表示从前往后保留',
+        ai_system='自动回复AI的系统'
+)
+async def command_recursive(
+        interaction: discord.Interaction,
+        content: str,
+        count: int,
+        model: str = GPT_MODEL_3_5,
+        reserve_history: int = 7,
+        ai_system: str = '',
+):
     if content == '':
         await discord_send_message(source=interaction, content='内容不能为空')
         return
@@ -313,7 +325,7 @@ async def command_recursive(interaction: discord.Interaction, content: str, coun
             response = await get_openai_chat_completion(
                     channel_id=interaction.channel.id,
                     history=history_ai,
-                    system=system,
+                    system=ai_system,
                     gpt_model=model,
                     temperature=temperature)
         if isinstance(response, str):
