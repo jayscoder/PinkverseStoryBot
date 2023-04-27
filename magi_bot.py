@@ -340,6 +340,7 @@ async def command_auto(
             'role'   : 'assistant',
             'content': response_content,
         })
+
         save_channel_context(channel_id=interaction.channel.id, history=history)
         await discord_send_message(source=interaction.channel,
                                    content=response_content)
@@ -359,6 +360,7 @@ async def command_auto(
                 })
 
         history_ai = clear_history_by_reserve(history_ai, reserve=reserve_history)
+
         async with interaction.channel.typing():
             response = await get_openai_chat_completion(
                     channel_id=interaction.channel.id,
@@ -366,6 +368,7 @@ async def command_auto(
                     system=cooper_system,
                     gpt_model=model,
                     temperature=temperature)
+
         if isinstance(response, str):
             await discord_send_message(source=interaction.channel, content=response)
             return
