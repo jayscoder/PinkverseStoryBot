@@ -18,25 +18,20 @@ def extract_response_dict(content: str) -> dict:
         'action'         : '',
         'button_sequence': ''
     }
-    bark_match = re.search(r'bark:(.*)', content)
-    thought_emoji_match = re.search(r'thought_emoji:(.*)', content)
-    action_match = re.search(r'action:(.*)', content)
-    button_sequence_match = re.search(r'button_sequence:(.*)', content)
 
-    if bark_match is not None:
-        response_dict['bark'] = re.sub(r"bark:|\"|\'", "", bark_match.group()).strip()
-    if thought_emoji_match is not None:
-        response_dict['thought_emoji'] = re.sub(r"thought_emoji:|\"|\'", "", thought_emoji_match.group()).strip()
-    if action_match is not None:
-        response_dict['action'] = re.sub(r"action:|\"|\'", "", action_match.group()).strip()
-    if button_sequence_match is not None:
-        response_dict['button_sequence'] = re.sub(r"button_sequence:|\"|\'", "", button_sequence_match.group()).strip()
+    patterns = {
+        'bark'           : r'bark:(.*)',
+        'thought_emoji'  : r'thought_emoji:(.*)',
+        'action'         : r'action:(.*)',
+        'button_sequence': r'button_sequence:(.*)'
+    }
+
+    for key, pattern in patterns.items():
+        match = re.search(pattern, content)
+        if match:
+            response_dict[key] = re.sub(f"{key}:|\"|'", "", match.group()).strip()
 
     return response_dict
-    # yaml_text = re.match(r'(bark:.*\n)?(action:.*\n)?button_sequence:\s*\[.*\]',
-    #                       content, re.DOTALL)
-    # return yaml.safe_load(yaml_text)
-
 
 if __name__ == '__main__':
     text = """bark: "汪~" 
