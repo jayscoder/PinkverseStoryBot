@@ -97,12 +97,12 @@ async def command_current_model(interaction: discord.Interaction):
 #     await discord_send_message(source=interaction,
 #                                content=model)
 
-@magi_bot_tree.command(name="survey", description="调研")
+@magi_bot_tree.command(name="survey", description="自动调研某个主题")
 @app_commands.choices(model=[
     app_commands.Choice(name="gpt-3.5", value=GPT_MODEL_3_5),
     app_commands.Choice(name="gpt-4", value=GPT_MODEL_4),
 ])
-@app_commands.describe(subject="调研主题", count="问答次数", model='GPT模型')
+@app_commands.describe(subject="主题", count="问答次数", model='GPT模型')
 async def command_survey(interaction: discord.Interaction, subject: str, count: int = 10, model: str = GPT_MODEL_3_5):
     content = f'关于“{subject}”，请你从不同的角度或关联的领域，提出{count}个我可能感兴趣的问题（要帮助我快速了解这个主题）:'
     await discord_send_message(source=interaction, content=content)
