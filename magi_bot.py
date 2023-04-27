@@ -287,7 +287,9 @@ async def command_repeat(
         count='重复次数',
         model='GPT模型',
         reserve_history='保留多少历史项，正数表示从后往前保留，负数表示从前往后保留',
-        cooper_system='Cooper的系统'
+        cooper_system='Cooper的系统',
+        magi_append='Magi的回复后面加上这些内容，帮助Cooper更好地回复Magi',
+        cooper_append='Cooper的回复后面加上这些内容，帮助Magi更好地回复Cooper'
 )
 async def command_auto(
         interaction: discord.Interaction,
@@ -296,6 +298,8 @@ async def command_auto(
         model: str = GPT_MODEL_3_5,
         reserve_history: int = 7,
         cooper_system: str = '',
+        magi_append: str = '',
+        cooper_append: str = ''
 ):
     if content == '':
         await discord_send_message(source=interaction, content='内容不能为空')
@@ -305,7 +309,7 @@ async def command_auto(
     temperature = setting['temperature']
 
     await discord_send_message(source=interaction,
-                               content=f'> {content} --count={count} --model={model} --temperature={temperature} --reserve_history={reserve_history} --cooper_system={cooper_system}')
+                               content=f'> {content} --count={count} --model={model} --temperature={temperature} --reserve_history={reserve_history} --cooper_system={cooper_system} --magi_append={magi_append} --cooper_append={cooper_append}')
 
     history = get_channel_context(channel_id=interaction.channel.id)
     history.append({
@@ -331,6 +335,9 @@ async def command_auto(
             return
 
         response_content = extract_openai_chat_response_content(response)
+        if magi_append != '':
+            response_content += '\n\n' + magi_append
+
         history.append({
             'role'   : 'assistant',
             'content': response_content,
@@ -341,30 +348,30 @@ async def command_auto(
                                    content=response_content)
 
         # Cooper模拟用户
-        history_ai = []
+        cooper_history = []
         for h in history:
             if h['role'] == 'user':
-                history_ai.append({
+                cooper_history.append({
                     'role'   : 'assistant',
                     'content': h['content']
                 })
             elif h['role'] == 'assistant':
-                history_ai.append({
+                cooper_history.append({
                     'role'   : 'user',
                     'content': h['content']
                 })
             else:
-                history_ai.append({
+                cooper_history.append({
                     'role'   : 'system',
                     'content': h['content']
                 })
 
-        history_ai = clear_history_by_reserve(history_ai, reserve=reserve_history)
+        cooper_history = clear_history_by_reserve(cooper_history, reserve=reserve_history)
 
         async with cooper_channel.typing():
             response = await get_openai_chat_completion(
                     channel_id=interaction.channel.id,
-                    history=history_ai,
+                    history=cooper_history,
                     system=cooper_system,
                     gpt_model=model,
                     temperature=temperature)
@@ -374,6 +381,9 @@ async def command_auto(
             return
 
         response_content = extract_openai_chat_response_content(response)
+        if cooper_append != '':
+            response_content += '\n\n' + cooper_append
+
         history.append({
             'role'   : 'user',
             'content': response_content,
