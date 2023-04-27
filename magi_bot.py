@@ -340,11 +340,11 @@ async def command_auto(
         response_content = extract_openai_chat_response_content(response)
         history.append({
             'role'   : 'user',
-            'content': f'> {response_content}',
+            'content': response_content,
         })
         save_channel_context(channel_id=interaction.channel.id, history=history)
         await discord_send_message(source=interaction.channel,
-                                   content=response_content)
+                                   content=f'> {response_content}')
 
 
 @magi_bot_tree.command(name="imagine", description="生成图片")
