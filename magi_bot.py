@@ -347,7 +347,7 @@ async def command_auto(
 
         # Cooper模拟用户
         history_ai = []
-        for h in history_ai:
+        for h in history:
             if h['role'] == 'user':
                 history_ai.append({
                     'role'   : 'assistant',
