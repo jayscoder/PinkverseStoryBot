@@ -127,7 +127,7 @@ def extract_response_dict(content: str) -> dict:
     response_dict = {
         'bark'           : '',
         'thought_emoji'  : '',
-        'acti'           : '',
+        'action'         : '',
         'button_sequence': ''
     }
     bark_match = re.search(r'bark:(.*)', content)
@@ -142,10 +142,6 @@ def extract_response_dict(content: str) -> dict:
     if action_match is not None:
         response_dict['action'] = re.sub(r"action:|\"|\'", "", action_match.group()).strip()
     if button_sequence_match is not None:
-        response_dict['button_sequence'] = re.sub(r"button_sequence:|\"|\'", "", action_match.group()).strip()
+        response_dict['button_sequence'] = re.sub(r"button_sequence:|\"|\'", "", button_sequence_match.group()).strip()
 
     return response_dict
-
-
-if __name__ == '__main__':
-    print(extract_response_dict(DOG_SYSTEM))

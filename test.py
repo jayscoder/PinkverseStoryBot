@@ -11,11 +11,36 @@ button_sequence: "我,爱,主人" # 【必须】你会用主人给你买的声�
 """
 
 
+def extract_response_dict(content: str) -> dict:
+    response_dict = {
+        'bark'           : '',
+        'thought_emoji'  : '',
+        'action'         : '',
+        'button_sequence': ''
+    }
+    bark_match = re.search(r'bark:(.*)', content)
+    thought_emoji_match = re.search(r'thought_emoji:(.*)', content)
+    action_match = re.search(r'action:(.*)', content)
+    button_sequence_match = re.search(r'button_sequence:(.*)', content)
 
+    if bark_match is not None:
+        response_dict['bark'] = re.sub(r"bark:|\"|\'", "", bark_match.group()).strip()
+    if thought_emoji_match is not None:
+        response_dict['thought_emoji'] = re.sub(r"thought_emoji:|\"|\'", "", thought_emoji_match.group()).strip()
+    if action_match is not None:
+        response_dict['action'] = re.sub(r"action:|\"|\'", "", action_match.group()).strip()
+    if button_sequence_match is not None:
+        response_dict['button_sequence'] = re.sub(r"button_sequence:|\"|\'", "", button_sequence_match.group()).strip()
+
+    return response_dict
     # yaml_text = re.match(r'(bark:.*\n)?(action:.*\n)?button_sequence:\s*\[.*\]',
     #                       content, re.DOTALL)
     # return yaml.safe_load(yaml_text)
 
 
 if __name__ == '__main__':
-    print(extract_response_dict(DOG_SYSTEM))
+    text = """bark: "汪~" 
+thought_emoji: "😊🎉" 
+action: "兴奋叼绳子出去玩" 
+button_sequence: '玩,玩,玩'"""
+    print(extract_response_dict(text))
