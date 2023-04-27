@@ -312,6 +312,7 @@ async def command_auto(
         'role'   : 'user',
         'content': content
     })
+    cooper_channel = cooper_dog.get_channel(interaction.channel.id)
     system = extract_channel_topic(interaction.channel)
 
     for i in range(count):
@@ -328,12 +329,6 @@ async def command_auto(
         if isinstance(response, str):
             await discord_send_message(source=interaction.channel, content=response)
             return
-
-        if i == 0:
-            # 将auto内容设为系统
-            for h in history:
-                if h['content'] == content:
-                    h['role'] = 'system'
 
         response_content = extract_openai_chat_response_content(response)
         history.append({
@@ -361,7 +356,7 @@ async def command_auto(
 
         history_ai = clear_history_by_reserve(history_ai, reserve=reserve_history)
 
-        async with interaction.channel.typing():
+        async with cooper_channel.typing():
             response = await get_openai_chat_completion(
                     channel_id=interaction.channel.id,
                     history=history_ai,
@@ -379,7 +374,7 @@ async def command_auto(
             'content': response_content,
         })
         save_channel_context(channel_id=interaction.channel.id, history=history)
-        await discord_send_message(source=cooper_dog.get_channel(interaction.channel.id),
+        await discord_send_message(source=cooper_channel,
                                    content=response_content)
 
 
