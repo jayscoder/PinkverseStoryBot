@@ -195,7 +195,7 @@ async def command_ask(interaction: discord.Interaction, question: str, model: st
     app_commands.Choice(name="gpt-3.5", value=GPT_MODEL_3_5),
     app_commands.Choice(name="gpt-4", value=GPT_MODEL_4),
 ])
-@app_commands.describe(question='重复给bot发同样的内容', count='重复次数', model='GPT模型',
+@app_commands.describe(content='重复给bot发的内容', count='重复次数', model='GPT模型',
                        reserve_history='保留多少历史项，正数表示从后往前保留，负数表示从前往后保留')
 async def command_repeat(interaction: discord.Interaction, content: str, count: int, model: str = GPT_MODEL_3_5,
                          reserve_history: int = 7):
