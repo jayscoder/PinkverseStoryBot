@@ -102,9 +102,13 @@ async def command_current_model(interaction: discord.Interaction):
     app_commands.Choice(name="gpt-3.5", value=GPT_MODEL_3_5),
     app_commands.Choice(name="gpt-4", value=GPT_MODEL_4),
 ])
-@app_commands.describe(subject="主题", question_count="问答次数", model='GPT模型')
-async def command_survey(interaction: discord.Interaction, subject: str, question_count: int = 10,
-                         model: str = GPT_MODEL_3_5):
+@app_commands.describe(subject="主题", system='系统', question_count="问答次数", model='GPT模型')
+async def command_survey(
+        interaction: discord.Interaction,
+        subject: str,
+        system='',
+        question_count: int = 10,
+        model: str = GPT_MODEL_3_5):
     await discord_send_message(source=interaction, content=f'{subject} --question_count={question_count} model={model}')
 
     setting = get_channel_setting(channel_id=interaction.channel.id)
@@ -113,11 +117,14 @@ async def command_survey(interaction: discord.Interaction, subject: str, questio
     content = f'请详细介绍一下 "{subject}"'
     await discord_send_message(source=cooper_dog.get_channel(interaction.channel.id), content=content)
 
+    if system == '':
+        system = f'你是一个"{subject}"专家'
+
     async with interaction.channel.typing():
         response = await get_openai_chat_completion(
                 channel_id=interaction.channel.id,
                 history=[{ 'role': 'user', 'content': content }],
-                system=f'你是一个"{subject}"专家',
+                system=system,
                 gpt_model=model,
                 temperature=temperature)
 
@@ -136,7 +143,7 @@ async def command_survey(interaction: discord.Interaction, subject: str, questio
         response = await get_openai_chat_completion(
                 channel_id=interaction.channel.id,
                 history=[{ 'role': 'user', 'content': content }],
-                system=subject_intro,
+                system=system + '\n' + subject_intro,
                 gpt_model=model,
                 temperature=temperature)
 
@@ -164,7 +171,7 @@ async def command_survey(interaction: discord.Interaction, subject: str, questio
             response = await get_openai_chat_completion(
                     channel_id=interaction.channel.id,
                     history=[{ 'role': 'user', 'content': question }],
-                    system=subject_intro,
+                    system=system + '\n' + subject_intro,
                     gpt_model=model,
                     temperature=temperature)
 
