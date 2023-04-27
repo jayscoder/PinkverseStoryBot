@@ -290,9 +290,11 @@ def clear_history_by_reserve(history: list, reserve: int) -> list:
             other_history.append(h)
 
     if reserve > 0:
-        other_history = other_history[-reserve:]
+        if len(other_history) > reserve:
+            other_history = other_history[-reserve:]
     elif reserve < 0:
-        other_history = other_history[:reserve]
+        if len(other_history) > -reserve:
+            other_history = other_history[:reserve]
     else:
         other_history = []
 
