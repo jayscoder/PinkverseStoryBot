@@ -102,18 +102,42 @@ async def command_current_model(interaction: discord.Interaction):
     app_commands.Choice(name="gpt-3.5", value=GPT_MODEL_3_5),
     app_commands.Choice(name="gpt-4", value=GPT_MODEL_4),
 ])
-@app_commands.describe(subject="主题", count="问答次数", model='GPT模型')
-async def command_survey(interaction: discord.Interaction, subject: str, count: int = 10, model: str = GPT_MODEL_3_5):
-    content = f'关于“{subject}”，请你从不同的角度或关联的领域，提出{count}个我可能感兴趣的问题（要帮助我快速了解这个主题）:'
-    await discord_send_message(source=interaction, content=f'> {content}')
+@app_commands.describe(subject="主题", question_count="问答次数", model='GPT模型')
+async def command_survey(interaction: discord.Interaction, subject: str, question_count: int = 10,
+                         model: str = GPT_MODEL_3_5):
+    await discord_send_message(source=interaction, content=f'{subject} --question_count={question_count} model={model}')
+
     setting = get_channel_setting(channel_id=interaction.channel.id)
     temperature = setting['temperature']
+
+    content = f'请详细介绍一下 "{subject}"'
+    await discord_send_message(source=interaction.channel, content=f'> {content}')
 
     async with interaction.channel.typing():
         response = await get_openai_chat_completion(
                 channel_id=interaction.channel.id,
                 history=[{ 'role': 'user', 'content': content }],
-                system='你是一个调研专家',
+                system=f'你是一个"{subject}"专家',
+                gpt_model=model,
+                temperature=temperature)
+
+    if isinstance(response, str):
+        await discord_send_message(source=interaction.channel, content=response)
+        return
+    response_content = extract_openai_chat_response_content(response)
+    await discord_send_message(source=interaction.channel,
+                               content=f'```\n{response_content}\n```')
+
+    subject_intro = response_content
+
+    content = f'关于“{subject}”，请你从不同的角度或关联的领域，提出{question_count}个我可能感兴趣的问题（要帮助我快速了解这个主题）:'
+    await discord_send_message(source=interaction, content=f'> {content}')
+
+    async with interaction.channel.typing():
+        response = await get_openai_chat_completion(
+                channel_id=interaction.channel.id,
+                history=[{ 'role': 'user', 'content': content }],
+                system=subject_intro,
                 gpt_model=model,
                 temperature=temperature)
 
@@ -135,13 +159,13 @@ async def command_survey(interaction: discord.Interaction, subject: str, count: 
 
         await discord_send_message(
                 source=interaction.channel,
-                content=f'** {question} **')
+                content=f'> {question}')
 
         async with interaction.channel.typing():
             response = await get_openai_chat_completion(
                     channel_id=interaction.channel.id,
                     history=[{ 'role': 'user', 'content': question }],
-                    system=f'你是一个"{subject}"的专家',
+                    system=subject_intro,
                     gpt_model=model,
                     temperature=temperature)
 
