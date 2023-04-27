@@ -129,6 +129,10 @@ async def command_survey(interaction: discord.Interaction, subject: str, count: 
         question = question.strip()
         if question == '':
             continue
+        await discord_send_message(
+                source=interaction.channel,
+                content=question)
+
         async with interaction.channel.typing():
             response = await get_openai_chat_completion(
                     channel_id=interaction.channel.id,
@@ -136,12 +140,13 @@ async def command_survey(interaction: discord.Interaction, subject: str, count: 
                     system=f'你是一个"{subject}"的专家',
                     gpt_model=model,
                     temperature=temperature)
+
         if isinstance(response, str):
             await discord_send_message(source=interaction.channel, content=response)
             return
         response_content = extract_openai_chat_response_content(response)
         await discord_send_message(source=interaction.channel,
-                                   content=f'{question}\n> {response_content}')
+                                   content=response_content)
 
 
 @magi_bot_tree.command(name="ask", description="提出问题，不考虑系统")
@@ -212,6 +217,10 @@ async def command_repeat(interaction: discord.Interaction, content: str, count: 
             'role'   : 'user',
             'content': content
         })
+        await discord_send_message(
+                source=interaction.channel,
+                content=content)
+
         history = clear_history_by_reserve(history, reserve=reserve_history)
         async with interaction.channel.typing():
             response = await get_openai_chat_completion(
@@ -230,8 +239,9 @@ async def command_repeat(interaction: discord.Interaction, content: str, count: 
             'content': response_content,
         })
         save_channel_context(channel_id=interaction.channel.id, history=history)
-        await discord_send_message(source=interaction.channel,
-                                   content=response_content)
+        await discord_send_message(
+                source=interaction.channel,
+                content=response_content)
 
 
 @magi_bot_tree.command(name="recursive", description="让AI来自动替你回复AI，重复多次")
