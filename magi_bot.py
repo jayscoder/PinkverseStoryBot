@@ -64,12 +64,7 @@ async def on_message_edit(before: discord.Message, after: discord.Message):
 async def command_clear(interaction: discord.Interaction, reserve: int = 0):
     history = utils.get_channel_context(channel_id=interaction.channel.id)
     old_history_count = len(history)
-    if reserve > 0:
-        history = history[-reserve:]
-    elif reserve < 0:
-        history = history[:reserve]
-    else:
-        history = []
+    history = clear_history_by_reserve(history, reserve=reserve)
 
     utils.save_channel_context(channel_id=interaction.channel.id, history=history)
     if reserve > 0:
@@ -103,11 +98,14 @@ async def command_current_model(interaction: discord.Interaction):
 #                                content=model)
 
 @magi_bot_tree.command(name="survey", description="调研")
-@app_commands.describe(subject="调研主题", count="问答次数")
-async def command_survey(interaction: discord.Interaction, subject: str, count: int = 10):
+@app_commands.choices(model=[
+    app_commands.Choice(name="gpt-3.5", value=GPT_MODEL_3_5),
+    app_commands.Choice(name="gpt-4", value=GPT_MODEL_4),
+])
+@app_commands.describe(subject="调研主题", count="问答次数", model='GPT模型')
+async def command_survey(interaction: discord.Interaction, subject: str, count: int = 10, model: str = GPT_MODEL_3_5):
     content = f'关于“{subject}”，请你从不同的角度或关联的领域，提出{count}个我可能感兴趣的问题（要帮助我快速了解这个主题）:'
     await discord_send_message(source=interaction, content=content)
-    model = extract_channel_gpt_model(extract_channel_name(interaction.channel))
     setting = get_channel_setting(channel_id=interaction.channel.id)
     temperature = setting['temperature']
 
@@ -180,6 +178,141 @@ async def command_ask(interaction: discord.Interaction, question: str, model: st
         response_content = extract_openai_chat_response_content(response)
         history.append({
             'role'   : 'assistant',
+            'content': response_content,
+        })
+        save_channel_context(channel_id=interaction.channel.id, history=history)
+        await discord_send_message(source=interaction.channel,
+                                   content=response_content)
+
+
+@magi_bot_tree.command(name="repeat", description="重复发送内容")
+@app_commands.choices(model=[
+    app_commands.Choice(name="gpt-3.5", value=GPT_MODEL_3_5),
+    app_commands.Choice(name="gpt-4", value=GPT_MODEL_4),
+])
+@app_commands.describe(question='重复给bot发同样的内容', count='重复次数', model='GPT模型',
+                       reserve_history='保留多少历史项，正数表示从后往前保留，负数表示从前往后保留')
+async def command_repeat(interaction: discord.Interaction, content: str, count: int, model: str = GPT_MODEL_3_5,
+                         reserve_history: int = 7):
+    if len(content) == 0:
+        await discord_send_message(source=interaction, content='内容不能为空')
+        return
+
+    setting = get_channel_setting(channel_id=interaction.channel.id)
+    temperature = setting['temperature']
+
+    await discord_send_message(source=interaction,
+                               content=f'> {content} --model={model} --temperature={temperature}')
+
+    system = extract_channel_topic(interaction.channel)
+    history = get_channel_context(channel_id=interaction.channel.id)
+
+    for i in range(count):
+        history.append({
+            'role'   : 'user',
+            'content': content
+        })
+        history = clear_history_by_reserve(history, reserve=reserve_history)
+        async with interaction.channel.typing():
+            response = await get_openai_chat_completion(
+                    channel_id=interaction.channel.id,
+                    history=history,
+                    system=system,
+                    gpt_model=model,
+                    temperature=temperature)
+
+        if isinstance(response, str):
+            await discord_send_message(source=interaction.channel, content=response)
+            return
+        response_content = extract_openai_chat_response_content(response)
+        history.append({
+            'role'   : 'assistant',
+            'content': response_content,
+        })
+        save_channel_context(channel_id=interaction.channel.id, history=history)
+        await discord_send_message(source=interaction.channel,
+                                   content=response_content)
+
+
+@magi_bot_tree.command(name="recursive", description="让AI来自动替你回复AI，重复多次")
+@app_commands.choices(model=[
+    app_commands.Choice(name="gpt-3.5", value=GPT_MODEL_3_5),
+    app_commands.Choice(name="gpt-4", value=GPT_MODEL_4),
+])
+@app_commands.describe(content='启动内容', count='重复次数', model='GPT模型',
+                       reserve_history='保留多少历史项，正数表示从后往前保留，负数表示从前往后保留')
+async def command_recursive(interaction: discord.Interaction, content: str, count: int, model: str = GPT_MODEL_3_5,
+                            reserve_history: int = 7):
+    if content == '':
+        await discord_send_message(source=interaction, content='内容不能为空')
+        return
+
+    setting = get_channel_setting(channel_id=interaction.channel.id)
+    temperature = setting['temperature']
+
+    await discord_send_message(source=interaction,
+                               content=f'> {content} --count={count} --model={model} --temperature={temperature} --reserve_history={reserve_history}')
+
+    history = get_channel_context(channel_id=interaction.channel.id)
+    history.append({
+        'role'   : 'user',
+        'content': content
+    })
+    system = extract_channel_topic(interaction.channel)
+
+    for i in range(count):
+        history = clear_history_by_reserve(history, reserve=reserve_history)
+
+        async with interaction.channel.typing():
+            response = await get_openai_chat_completion(
+                    channel_id=interaction.channel.id,
+                    history=history,
+                    system=system,
+                    gpt_model=model,
+                    temperature=temperature)
+
+        if isinstance(response, str):
+            await discord_send_message(source=interaction.channel, content=response)
+            return
+
+        response_content = extract_openai_chat_response_content(response)
+        history.append({
+            'role'   : 'assistant',
+            'content': response_content,
+        })
+        save_channel_context(channel_id=interaction.channel.id, history=history)
+        await discord_send_message(source=interaction.channel,
+                                   content=response_content)
+
+        # AI模拟用户
+        history_ai = []
+        for h in history_ai:
+            if h['role'] == 'user':
+                history_ai.append({
+                    'role'   : 'assistant',
+                    'content': h['content']
+                })
+            else:
+                history_ai.append({
+                    'role'   : 'user',
+                    'content': h['content']
+                })
+
+        history_ai = clear_history_by_reserve(history_ai, reserve=reserve_history)
+        async with interaction.channel.typing():
+            response = await get_openai_chat_completion(
+                    channel_id=interaction.channel.id,
+                    history=history_ai,
+                    system=system,
+                    gpt_model=model,
+                    temperature=temperature)
+        if isinstance(response, str):
+            await discord_send_message(source=interaction.channel, content=response)
+            return
+
+        response_content = extract_openai_chat_response_content(response)
+        history.append({
+            'role'   : 'user',
             'content': response_content,
         })
         save_channel_context(channel_id=interaction.channel.id, history=history)

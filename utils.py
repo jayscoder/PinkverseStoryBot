@@ -277,3 +277,13 @@ def extract_channel_topic(channel) -> str:
             return channel.topic or ''
         except:
             return ''
+
+
+def clear_history_by_reserve(history: list, reserve: int) -> list:
+    if reserve > 0:
+        history = history[-reserve:]
+    elif reserve < 0:
+        history = history[:reserve]
+    else:
+        history = []
+    return history
