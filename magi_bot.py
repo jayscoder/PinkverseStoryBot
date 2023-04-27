@@ -302,7 +302,7 @@ async def command_auto(
     temperature = setting['temperature']
 
     await discord_send_message(source=interaction,
-                               content=f'> {content} --count={count} --model={model} --temperature={temperature} --reserve_history={reserve_history}')
+                               content=f'> {content} --count={count} --model={model} --temperature={temperature} --reserve_history={reserve_history} --ai_system={ai_system}')
 
     history = get_channel_context(channel_id=interaction.channel.id)
     history.append({
