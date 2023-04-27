@@ -348,9 +348,14 @@ async def command_auto(
                     'role'   : 'assistant',
                     'content': h['content']
                 })
-            else:
+            elif h['role'] == 'assistant':
                 history_ai.append({
                     'role'   : 'user',
+                    'content': h['content']
+                })
+            else:
+                history_ai.append({
+                    'role'   : 'system',
                     'content': h['content']
                 })
 
