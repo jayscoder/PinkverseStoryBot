@@ -102,6 +102,49 @@ async def command_current_model(interaction: discord.Interaction):
 #     await discord_send_message(source=interaction,
 #                                content=model)
 
+@magi_bot_tree.command(name="survey", description="调研")
+@app_commands.describe(subject="调研主题", count="问答次数")
+async def command_survey(interaction: discord.Interaction, subject: str, count: int = 10):
+    content = f'关于“{subject}”，请你从不同的角度或关联的领域，提出{count}个我可能感兴趣的问题（要帮助我快速了解这个主题）:'
+    await discord_send_message(source=interaction, content=content)
+    model = extract_channel_gpt_model(extract_channel_name(interaction.channel))
+    setting = get_channel_setting(channel_id=interaction.channel.id)
+    temperature = setting['temperature']
+
+    async with interaction.channel.typing():
+        response = await get_openai_chat_completion(
+                channel_id=interaction.channel.id,
+                history=[{ 'role': 'user', 'content': content }],
+                system='你是一个调研专家',
+                gpt_model=model,
+                temperature=temperature)
+
+    if isinstance(response, str):
+        await discord_send_message(source=interaction.channel, content=response)
+        return
+    response_content = extract_openai_chat_response_content(response)
+    await discord_send_message(source=interaction.channel,
+                               content=response_content)
+
+    questions = response_content.split('\n')
+    for question in questions:
+        question = question.strip()
+        if question == '':
+            continue
+        async with interaction.channel.typing():
+            response = await get_openai_chat_completion(
+                    channel_id=interaction.channel.id,
+                    history=[{ 'role': 'user', 'content': question }],
+                    system=f'你是一个"{subject}"的专家',
+                    gpt_model=model,
+                    temperature=temperature)
+        if isinstance(response, str):
+            await discord_send_message(source=interaction.channel, content=response)
+            return
+        response_content = extract_openai_chat_response_content(response)
+        await discord_send_message(source=interaction.channel,
+                                   content=f'{question}\n> {response_content}')
+
 
 @magi_bot_tree.command(name="ask", description="提出问题，不考虑系统")
 @app_commands.choices(model=[
