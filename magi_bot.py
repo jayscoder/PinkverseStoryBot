@@ -248,7 +248,7 @@ async def command_repeat(interaction: discord.Interaction, content: str, count: 
         })
         await discord_send_message(
                 source=interaction.channel,
-                content=f'> {content}')
+                content=f'```\n{content}```')
 
         history = clear_history_by_reserve(history, reserve=reserve_history)
         async with interaction.channel.typing():
@@ -368,7 +368,7 @@ async def command_auto(
         })
         save_channel_context(channel_id=interaction.channel.id, history=history)
         await discord_send_message(source=interaction.channel,
-                                   content=f'> {response_content}')
+                                   content=f'```\n{response_content}```')
 
 
 @magi_bot_tree.command(name="imagine", description="生成图片")
