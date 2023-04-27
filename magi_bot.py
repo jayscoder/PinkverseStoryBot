@@ -130,6 +130,9 @@ async def command_survey(interaction: discord.Interaction, subject: str, count: 
         question = question.strip()
         if question == '':
             continue
+        if not question[0].isdigit():
+            continue
+
         await discord_send_message(
                 source=interaction.channel,
                 content=f'** {question} **')
