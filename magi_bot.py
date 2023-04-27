@@ -111,7 +111,7 @@ async def command_survey(interaction: discord.Interaction, subject: str, questio
     temperature = setting['temperature']
 
     content = f'请详细介绍一下 "{subject}"'
-    await discord_send_message(source=cooper_dog.get_channel(interaction.channel.id), content=f'> {content}')
+    await discord_send_message(source=cooper_dog.get_channel(interaction.channel.id), content=content)
 
     async with interaction.channel.typing():
         response = await get_openai_chat_completion(
