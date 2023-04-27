@@ -245,7 +245,7 @@ async def command_repeat(interaction: discord.Interaction, content: str, count: 
                 content=response_content)
 
 
-@magi_bot_tree.command(name="recursive", description="让AI来自动替你回复，重复多次")
+@magi_bot_tree.command(name="auto", description="让AI来自动替你回复，重复多次")
 @app_commands.choices(model=[
     app_commands.Choice(name="gpt-3.5", value=GPT_MODEL_3_5),
     app_commands.Choice(name="gpt-4", value=GPT_MODEL_4),
@@ -257,7 +257,7 @@ async def command_repeat(interaction: discord.Interaction, content: str, count: 
         reserve_history='保留多少历史项，正数表示从后往前保留，负数表示从前往后保留',
         ai_system='自动回复AI的系统'
 )
-async def command_recursive(
+async def command_auto(
         interaction: discord.Interaction,
         content: str,
         count: int,
