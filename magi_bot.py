@@ -329,6 +329,12 @@ async def command_auto(
             await discord_send_message(source=interaction.channel, content=response)
             return
 
+        if i == 0:
+            # 将auto内容设为系统
+            for h in history:
+                if h['content'] == content:
+                    h['role'] = 'system'
+
         response_content = extract_openai_chat_response_content(response)
         history.append({
             'role'   : 'assistant',

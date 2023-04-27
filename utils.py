@@ -280,10 +280,20 @@ def extract_channel_topic(channel) -> str:
 
 
 def clear_history_by_reserve(history: list, reserve: int) -> list:
+    # 保留系统
+    system_history = []
+    other_history = []
+    for h in history:
+        if h['role'] == 'system':
+            system_history.append(h)
+        else:
+            other_history.append(h)
+
     if reserve > 0:
-        history = history[-reserve:]
+        other_history = other_history[-reserve:]
     elif reserve < 0:
-        history = history[:reserve]
+        other_history = other_history[:reserve]
     else:
-        history = []
-    return history
+        other_history = []
+
+    return system_history + other_history
