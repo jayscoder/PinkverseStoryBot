@@ -97,7 +97,7 @@ async def command_current_model(interaction: discord.Interaction):
 #     await discord_send_message(source=interaction,
 #                                content=model)
 
-@magi_bot_tree.command(name="survey", description="自动调研某个主题")
+@magi_bot_tree.command(name="survey", description="让Cooper替你自动调研某个主题")
 @app_commands.choices(model=[
     app_commands.Choice(name="gpt-3.5", value=GPT_MODEL_3_5),
     app_commands.Choice(name="gpt-4", value=GPT_MODEL_4),
@@ -111,7 +111,7 @@ async def command_survey(interaction: discord.Interaction, subject: str, questio
     temperature = setting['temperature']
 
     content = f'请详细介绍一下 "{subject}"'
-    await discord_send_message(source=interaction.channel, content=f'> {content}')
+    await discord_send_message(source=cooper_dog.get_channel(interaction.channel.id), content=f'> {content}')
 
     async with interaction.channel.typing():
         response = await get_openai_chat_completion(
@@ -124,14 +124,13 @@ async def command_survey(interaction: discord.Interaction, subject: str, questio
     if isinstance(response, str):
         await discord_send_message(source=interaction.channel, content=response)
         return
-    response_content = extract_openai_chat_response_content(response)
-    await discord_send_message(source=interaction.channel,
-                               content=f'```\n{response_content}\n```')
 
-    subject_intro = response_content
+    subject_intro = extract_openai_chat_response_content(response)
+    await discord_send_message(source=interaction.channel,
+                               content=subject_intro)
 
     content = f'关于“{subject}”，请你从不同的角度或关联的领域，提出{question_count}个我可能感兴趣的问题（要帮助我快速了解这个主题）:'
-    await discord_send_message(source=interaction, content=f'> {content}')
+    await discord_send_message(source=cooper_dog.get_channel(interaction.channel.id), content=content)
 
     async with interaction.channel.typing():
         response = await get_openai_chat_completion(
@@ -145,11 +144,11 @@ async def command_survey(interaction: discord.Interaction, subject: str, questio
         await discord_send_message(source=interaction.channel, content=response)
         return
 
-    response_content = extract_openai_chat_response_content(response)
+    question_content = extract_openai_chat_response_content(response)
     await discord_send_message(source=interaction.channel,
-                               content=f'```\n{response_content}\n```')
+                               content=question_content)
 
-    questions = response_content.split('\n')
+    questions = question_content.split('\n')
     for question in questions:
         question = question.strip()
         if question == '':
@@ -158,8 +157,8 @@ async def command_survey(interaction: discord.Interaction, subject: str, questio
             continue
 
         await discord_send_message(
-                source=interaction.channel,
-                content=f'> {question}')
+                source=cooper_dog.get_channel(interaction.channel.id),
+                content=question)
 
         async with interaction.channel.typing():
             response = await get_openai_chat_completion(
@@ -174,7 +173,7 @@ async def command_survey(interaction: discord.Interaction, subject: str, questio
             return
         response_content = extract_openai_chat_response_content(response)
         await discord_send_message(source=interaction.channel,
-                                   content=f'```\n{response_content}\n```')
+                                   content=response_content)
 
 
 @magi_bot_tree.command(name="ask", description="提出问题，不考虑系统")
@@ -218,15 +217,19 @@ async def command_ask(interaction: discord.Interaction, question: str, model: st
                                    content=response_content)
 
 
-@magi_bot_tree.command(name="repeat", description="重复发送内容")
+@magi_bot_tree.command(name="repeat", description="让Cooper替你重复向Magi提问")
 @app_commands.choices(model=[
     app_commands.Choice(name="gpt-3.5", value=GPT_MODEL_3_5),
     app_commands.Choice(name="gpt-4", value=GPT_MODEL_4),
 ])
-@app_commands.describe(content='重复给bot发的内容', count='重复次数', model='GPT模型',
+@app_commands.describe(content='重复的提问', count='重复次数', model='GPT模型',
                        reserve_history='保留多少历史项，正数表示从后往前保留，负数表示从前往后保留')
-async def command_repeat(interaction: discord.Interaction, content: str, count: int, model: str = GPT_MODEL_3_5,
-                         reserve_history: int = 7):
+async def command_repeat(
+        interaction: discord.Interaction,
+        content: str,
+        count: int,
+        model: str = GPT_MODEL_3_5,
+        reserve_history: int = 7):
     if len(content) == 0:
         await discord_send_message(source=interaction, content='内容不能为空')
         return
@@ -241,14 +244,14 @@ async def command_repeat(interaction: discord.Interaction, content: str, count: 
     history = get_channel_context(channel_id=interaction.channel.id)
 
     for i in range(count):
-
         history.append({
             'role'   : 'user',
             'content': content
         })
+
         await discord_send_message(
-                source=interaction.channel,
-                content=f'```\n{content}```')
+                source=cooper_dog.get_channel(interaction.channel.id),
+                content=content)
 
         history = clear_history_by_reserve(history, reserve=reserve_history)
         async with interaction.channel.typing():
@@ -274,7 +277,7 @@ async def command_repeat(interaction: discord.Interaction, content: str, count: 
                 content=response_content)
 
 
-@magi_bot_tree.command(name="auto", description="让AI来自动替你回复，重复多次")
+@magi_bot_tree.command(name="auto", description="让Cooper来自动替你回复，重复多次")
 @app_commands.choices(model=[
     app_commands.Choice(name="gpt-3.5", value=GPT_MODEL_3_5),
     app_commands.Choice(name="gpt-4", value=GPT_MODEL_4),
@@ -284,7 +287,7 @@ async def command_repeat(interaction: discord.Interaction, content: str, count: 
         count='重复次数',
         model='GPT模型',
         reserve_history='保留多少历史项，正数表示从后往前保留，负数表示从前往后保留',
-        ai_system='自动回复AI的系统'
+        cooper_system='Cooper的系统'
 )
 async def command_auto(
         interaction: discord.Interaction,
@@ -292,7 +295,7 @@ async def command_auto(
         count: int,
         model: str = GPT_MODEL_3_5,
         reserve_history: int = 7,
-        ai_system: str = '',
+        cooper_system: str = '',
 ):
     if content == '':
         await discord_send_message(source=interaction, content='内容不能为空')
@@ -302,7 +305,7 @@ async def command_auto(
     temperature = setting['temperature']
 
     await discord_send_message(source=interaction,
-                               content=f'> {content} --count={count} --model={model} --temperature={temperature} --reserve_history={reserve_history} --ai_system={ai_system}')
+                               content=f'> {content} --count={count} --model={model} --temperature={temperature} --reserve_history={reserve_history} --cooper_system={cooper_system}')
 
     history = get_channel_context(channel_id=interaction.channel.id)
     history.append({
@@ -335,7 +338,7 @@ async def command_auto(
         await discord_send_message(source=interaction.channel,
                                    content=response_content)
 
-        # AI模拟用户
+        # Cooper模拟用户
         history_ai = []
         for h in history_ai:
             if h['role'] == 'user':
@@ -354,7 +357,7 @@ async def command_auto(
             response = await get_openai_chat_completion(
                     channel_id=interaction.channel.id,
                     history=history_ai,
-                    system=ai_system,
+                    system=cooper_system,
                     gpt_model=model,
                     temperature=temperature)
         if isinstance(response, str):
@@ -367,8 +370,8 @@ async def command_auto(
             'content': response_content,
         })
         save_channel_context(channel_id=interaction.channel.id, history=history)
-        await discord_send_message(source=interaction.channel,
-                                   content=f'```\n{response_content}```')
+        await discord_send_message(source=cooper_dog.get_channel(interaction.channel.id),
+                                   content=response_content)
 
 
 @magi_bot_tree.command(name="imagine", description="生成图片")
