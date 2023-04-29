@@ -149,6 +149,6 @@ def extract_response_dict(content: str) -> dict:
     for key, pattern in patterns.items():
         match = re.search(pattern, content)
         if match:
-            response_dict[key] = re.sub(f"{key}|:|\"|'", "", match.group()).strip()
+            response_dict[key] = re.sub(f"{key}|:|\"|'|\s", "", match.group()).strip()
 
     return response_dict
