@@ -140,15 +140,15 @@ def extract_response_dict(content: str) -> dict:
     }
 
     patterns = {
-        'bark'           : r'bark:(.*)',
-        'thought_emoji'  : r'thought_emoji:(.*)',
-        'action'         : r'action:(.*)',
-        'button_sequence': r'button_sequence:(.*)'
+        'bark'           : r'bark(.*)',
+        'thought_emoji'  : r'thought_emoji(.*)',
+        'action'         : r'action(.*)',
+        'button_sequence': r'button_sequence(.*)'
     }
 
     for key, pattern in patterns.items():
         match = re.search(pattern, content)
         if match:
-            response_dict[key] = re.sub(f"{key}:|\"|'", "", match.group()).strip()
+            response_dict[key] = re.sub(f"{key}|:|\"|'", "", match.group()).strip()
 
     return response_dict
