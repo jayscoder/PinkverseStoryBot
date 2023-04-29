@@ -354,6 +354,9 @@ async def command_auto(
         await discord_send_message(source=interaction.channel,
                                    content=response_content)
 
+        if i == count - 1:
+            break
+        
         # Cooper模拟用户
         cooper_history = []
         for h in history:
