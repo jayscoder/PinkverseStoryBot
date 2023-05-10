@@ -1,6 +1,8 @@
 import utils
 from utils import *
 from bots import *
+from collections import defaultdict
+import time
 
 
 # 定义bot登陆事件
@@ -19,6 +21,9 @@ async def on_ready():
 # 如何使用斜杠命令
 # https://qa.1r1g.com/sf/ask/5043065541/
 
+last_magi_message_content = defaultdict(str)
+last_magi_message_time = defaultdict(float)
+
 
 # 定义bot接收到消息的事件
 @magi_bot.event
@@ -27,10 +32,14 @@ async def on_message(message: discord.Message):
         # 提到了Cooper且没有提到Magi，不再回复
         return
 
+    last_magi_message_content[message.channel.id] = message.content
+    last_magi_message_time[message.channel.id] = time.time()
     # 群聊
     print(f'Magi {message.author.display_name}: {message.content}')
     await MagiChannelContext(message).on_message()
-    asyncio.create_task(save_channel_info(message.channel))
+
+    if message.author != magi_bot and message.author != cooper_dog:
+        asyncio.create_task(save_channel_info(message.channel))
 
     # await save_channel_info(message.channel)
 
@@ -109,7 +118,8 @@ async def command_survey(
         system: str = '',
         question_count: int = 10,
         model: str = GPT_MODEL_3_5):
-    await discord_send_message(source=interaction, content=f'{subject} --question_count={question_count} --model={model} --system={system}')
+    await discord_send_message(source=interaction,
+                               content=f'{subject} --question_count={question_count} --model={model} --system={system}')
 
     setting = get_channel_setting(channel_id=interaction.channel.id)
     temperature = setting['temperature']
@@ -356,7 +366,7 @@ async def command_auto(
 
         if i == count - 1:
             break
-        
+
         # Cooper模拟用户
         cooper_history = []
         for h in history:
@@ -515,9 +525,9 @@ class MagiChannelContext:
         self.channel = message.channel
         self.channel_id = message.channel.id
         # 来自用户发的内容
-        self.from_user = message.author != magi_bot.user and message.author != cooper_dog.user
-        self.from_magi = message.author == magi_bot.user
-        self.from_dog = message.author == cooper_dog.user
+        self.from_user = message.author.id != magi_bot.user.id and message.author.id != cooper_dog.user.id
+        self.from_magi = message.author.id == magi_bot.user.id
+        self.from_dog = message.author.id == cooper_dog.user.id
 
         self.document = ''  # 文档里的内容
         self.setting = get_channel_setting(channel_id=message.channel.id)
@@ -644,7 +654,7 @@ class MagiChannelContext:
         is_long = Command.check_startswith(self.content, Command.LONG)
         if is_long:
             self.content = Command.remove_startswith(self.content, Command.LONG)
-
+        
         # 如果消息包含附件
         if self.message.attachments:
             for attachment in self.message.attachments:
@@ -671,7 +681,7 @@ class MagiChannelContext:
                 await self.send_message(response_content)
                 return
 
-        if self.from_magi or self.from_dog:
+        if not self.from_user:
             # 如果是机器人发的内容，则直接返回
             return
 
